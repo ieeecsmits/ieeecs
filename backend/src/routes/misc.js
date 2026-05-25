@@ -1,6 +1,6 @@
 const express = require('express');
 
-const pool = require('../db/connection');
+const { GalleryImage, Membership, Contact } = require('../models');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
 const { writeLimiter } = require('../middleware/rateLimits');
 const asyncHandler = require('../middleware/asyncHandler');
@@ -20,23 +20,18 @@ router.get(
     const limit = req.query.limit ?? 20;
     const offset = req.query.offset ?? 0;
 
-    const clauses = [];
-    const params = [];
-    let idx = 1;
-    if (category) { clauses.push(`g.category = $${idx++}`); params.push(category); }
-    if (event_id) { clauses.push(`g.event_id = $${idx++}`); params.push(event_id); }
-    if (featured === 'true') clauses.push('g.is_featured = true');
-    const whereSql = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+    const filter = {};
+    if (category) filter.category = category;
+    if (event_id) filter.event_id = event_id;
+    if (featured === 'true') filter.is_featured = true;
 
-    const { rows } = await pool.query(
-      `SELECT g.*, e.title AS event_title
-         FROM gallery g LEFT JOIN events e ON g.event_id = e.id
-         ${whereSql}
-         ORDER BY g.created_at DESC
-         LIMIT $${idx} OFFSET $${idx + 1}`,
-      [...params, limit, offset]
-    );
-    res.json({ success: true, images: rows, limit, offset });
+    const images = await GalleryImage.find(filter)
+      .populate('event_id', 'title')
+      .sort({ created_at: -1 })
+      .skip(offset)
+      .limit(limit);
+
+    res.json({ success: true, images, limit, offset });
   })
 );
 
@@ -48,12 +43,14 @@ router.post(
   validate,
   asyncHandler(async (req, res) => {
     const { title, description, image_url, event_id, category, is_featured } = req.body;
-    const { rows } = await pool.query(
-      `INSERT INTO gallery (title, description, image_url, event_id, category, is_featured, uploaded_by)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [title, description, image_url, event_id || null, category || 'general', is_featured ?? false, req.user.id]
-    );
-    res.status(201).json({ success: true, image: rows[0] });
+    const image = await GalleryImage.create({
+      title, description, image_url,
+      event_id: event_id || null,
+      category: category || 'general',
+      is_featured: is_featured ?? false,
+      uploaded_by: req.user.id,
+    });
+    res.status(201).json({ success: true, image });
   })
 );
 
@@ -61,11 +58,11 @@ router.delete(
   '/gallery/:id',
   authMiddleware,
   adminOnly,
-  schemas.uuidParam(),
+  schemas.idParam(),
   validate,
   asyncHandler(async (req, res) => {
-    const { rowCount } = await pool.query('DELETE FROM gallery WHERE id = $1', [req.params.id]);
-    if (!rowCount) throw new HttpError(404, 'Image not found');
+    const result = await GalleryImage.findByIdAndDelete(req.params.id);
+    if (!result) throw new HttpError(404, 'Image not found');
     res.json({ success: true, message: 'Deleted' });
   })
 );
@@ -77,21 +74,13 @@ router.post(
   schemas.membershipApply,
   validate,
   asyncHandler(async (req, res) => {
-    const {
-      name, email, phone, college, branch, year_of_study,
-      roll_number, ieee_membership_id, membership_type,
-    } = req.body;
-
-    const existing = await pool.query('SELECT id FROM memberships WHERE email = $1', [email]);
-    if (existing.rows[0]) throw new HttpError(409, 'Application already submitted with this email');
-
-    const { rows } = await pool.query(
-      `INSERT INTO memberships
-        (name, email, phone, college, branch, year_of_study, roll_number, ieee_membership_id, membership_type)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-      [name, email, phone, college, branch, year_of_study, roll_number, ieee_membership_id, membership_type || 'student']
-    );
-    res.status(201).json({ success: true, membership: rows[0], message: 'Membership application submitted' });
+    try {
+      const membership = await Membership.create(req.body);
+      res.status(201).json({ success: true, membership, message: 'Membership application submitted' });
+    } catch (err) {
+      if (err.code === 11000) throw new HttpError(409, 'Application already submitted with this email');
+      throw err;
+    }
   })
 );
 
@@ -100,8 +89,8 @@ router.get(
   authMiddleware,
   adminOnly,
   asyncHandler(async (_req, res) => {
-    const { rows } = await pool.query('SELECT * FROM memberships ORDER BY applied_at DESC');
-    res.json({ success: true, memberships: rows });
+    const memberships = await Membership.find().sort({ applied_at: -1 });
+    res.json({ success: true, memberships });
   })
 );
 
@@ -109,18 +98,22 @@ router.put(
   '/membership/:id/status',
   authMiddleware,
   adminOnly,
-  schemas.uuidParam(),
+  schemas.idParam(),
   schemas.membershipStatus,
   validate,
   asyncHandler(async (req, res) => {
     const { status } = req.body;
-    const { rows } = await pool.query(
-      `UPDATE memberships SET status = $1, approved_at = $2, approved_by = $3
-       WHERE id = $4 RETURNING *`,
-      [status, status === 'active' ? new Date() : null, req.user.id, req.params.id]
-    );
-    if (!rows[0]) throw new HttpError(404, 'Membership not found');
-    res.json({ success: true, membership: rows[0] });
+    const update = {
+      status,
+      approved_at: status === 'active' ? new Date() : null,
+      approved_by: req.user.id,
+    };
+    const membership = await Membership.findByIdAndUpdate(req.params.id, update, {
+      new: true,
+      runValidators: true,
+    });
+    if (!membership) throw new HttpError(404, 'Membership not found');
+    res.json({ success: true, membership });
   })
 );
 
@@ -131,12 +124,8 @@ router.post(
   schemas.contactCreate,
   validate,
   asyncHandler(async (req, res) => {
-    const { name, email, subject, message } = req.body;
-    const { rows } = await pool.query(
-      `INSERT INTO contacts (name, email, subject, message) VALUES ($1,$2,$3,$4) RETURNING *`,
-      [name, email, subject, message]
-    );
-    res.status(201).json({ success: true, contact: rows[0], message: 'Message sent' });
+    const contact = await Contact.create(req.body);
+    res.status(201).json({ success: true, contact, message: 'Message sent' });
   })
 );
 
@@ -145,8 +134,8 @@ router.get(
   authMiddleware,
   adminOnly,
   asyncHandler(async (_req, res) => {
-    const { rows } = await pool.query('SELECT * FROM contacts ORDER BY created_at DESC');
-    res.json({ success: true, contacts: rows });
+    const contacts = await Contact.find().sort({ created_at: -1 });
+    res.json({ success: true, contacts });
   })
 );
 

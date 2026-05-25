@@ -9,7 +9,7 @@ const optionalUrl = (field) =>
   body(field).optional({ nullable: true, checkFalsy: true }).isURL().withMessage(`${field} must be a valid URL`);
 const optionalEnum = (field, values) =>
   body(field).optional().isIn(values).withMessage(`${field} must be one of: ${values.join(', ')}`);
-const uuidParam = (name = 'id') => param(name).isUUID().withMessage(`${name} must be a UUID`);
+const idParam = (name = 'id') => param(name).isMongoId().withMessage(`${name} must be a valid Mongo ObjectId`);
 
 const pagination = [
   query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
@@ -71,7 +71,7 @@ const galleryCreate = [
   optionalStr('title'),
   optionalStr('description', 2000),
   body('image_url').isURL().withMessage('image_url must be a valid URL'),
-  body('event_id').optional({ nullable: true, checkFalsy: true }).isUUID(),
+  body('event_id').optional({ nullable: true, checkFalsy: true }).isMongoId(),
   optionalStr('category', 100),
   body('is_featured').optional().isBoolean().toBoolean(),
 ];
@@ -100,7 +100,7 @@ const contactCreate = [
 ];
 
 module.exports = {
-  uuidParam,
+  idParam,
   pagination,
   login,
   eventCreate,

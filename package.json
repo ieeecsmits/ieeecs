@@ -8,7 +8,7 @@
     "install:all": "cd backend && npm install && cd ../frontend && npm install",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
-    "db:migrate": "cd backend && npm run db:migrate",
+    "db:sync-indexes": "cd backend && npm run db:sync-indexes",
     "db:seed": "cd backend && npm run db:seed"
   },
   "dependencies": {

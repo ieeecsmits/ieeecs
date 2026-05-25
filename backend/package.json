@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "db:migrate": "node src/db/migrate.js",
+    "db:sync-indexes": "node src/db/syncIndexes.js",
     "db:seed": "node src/db/seed.js",
     "lint": "eslint src"
   },
@@ -20,8 +20,8 @@
     "express-validator": "^7.0.1",
     "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.2",
-    "morgan": "^1.10.1",
-    "pg": "^8.11.3"
+    "mongoose": "^9.6.2",
+    "morgan": "^1.10.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

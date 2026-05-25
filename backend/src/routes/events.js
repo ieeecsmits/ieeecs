@@ -1,6 +1,6 @@
 const express = require('express');
 
-const pool = require('../db/connection');
+const { Event, EventRegistration } = require('../models');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
 const { writeLimiter } = require('../middleware/rateLimits');
 const asyncHandler = require('../middleware/asyncHandler');
@@ -11,12 +11,18 @@ const HttpError = require('../utils/HttpError');
 
 const router = express.Router();
 
-const EVENT_UPDATABLE_COLUMNS = new Set([
+const EVENT_UPDATABLE_FIELDS = new Set([
   'title', 'description', 'short_description', 'event_type', 'status',
   'date', 'time', 'end_date', 'venue', 'is_online', 'meeting_link',
   'registration_link', 'max_participants', 'current_participants',
   'image_url', 'tags', 'is_featured',
 ]);
+
+const EVENT_CREATE_FIELDS = [
+  'title', 'description', 'short_description', 'event_type', 'status',
+  'date', 'time', 'end_date', 'venue', 'is_online', 'meeting_link',
+  'registration_link', 'max_participants', 'image_url', 'tags', 'is_featured',
+];
 
 router.get(
   '/',
@@ -27,34 +33,28 @@ router.get(
     const limit = req.query.limit ?? 20;
     const offset = req.query.offset ?? 0;
 
-    const clauses = [];
-    const params = [];
-    let idx = 1;
-    if (status) { clauses.push(`status = $${idx++}`); params.push(status); }
-    if (type) { clauses.push(`event_type = $${idx++}`); params.push(type); }
-    if (featured === 'true') clauses.push('is_featured = true');
-    const whereSql = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+    const filter = {};
+    if (status) filter.status = status;
+    if (type) filter.event_type = type;
+    if (featured === 'true') filter.is_featured = true;
 
-    const [list, count] = await Promise.all([
-      pool.query(
-        `SELECT * FROM events ${whereSql} ORDER BY date DESC LIMIT $${idx} OFFSET $${idx + 1}`,
-        [...params, limit, offset]
-      ),
-      pool.query(`SELECT COUNT(*)::int AS total FROM events ${whereSql}`, params),
+    const [events, total] = await Promise.all([
+      Event.find(filter).sort({ date: -1 }).skip(offset).limit(limit),
+      Event.countDocuments(filter),
     ]);
 
-    res.json({ success: true, events: list.rows, total: count.rows[0].total, limit, offset });
+    res.json({ success: true, events, total, limit, offset });
   })
 );
 
 router.get(
   '/:id',
-  schemas.uuidParam(),
+  schemas.idParam(),
   validate,
   asyncHandler(async (req, res) => {
-    const { rows } = await pool.query('SELECT * FROM events WHERE id = $1', [req.params.id]);
-    if (!rows[0]) throw new HttpError(404, 'Event not found');
-    res.json({ success: true, event: rows[0] });
+    const event = await Event.findById(req.params.id);
+    if (!event) throw new HttpError(404, 'Event not found');
+    res.json({ success: true, event });
   })
 );
 
@@ -65,23 +65,11 @@ router.post(
   schemas.eventCreate,
   validate,
   asyncHandler(async (req, res) => {
-    const {
-      title, description, short_description, event_type, status,
-      date, time, end_date, venue, is_online, meeting_link,
-      registration_link, max_participants, image_url, tags, is_featured,
-    } = req.body;
-
-    const { rows } = await pool.query(
-      `INSERT INTO events (title, description, short_description, event_type, status, date, time,
-        end_date, venue, is_online, meeting_link, registration_link, max_participants,
-        image_url, tags, is_featured, created_by)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
-       RETURNING *`,
-      [title, description, short_description, event_type, status, date, time,
-       end_date, venue, is_online, meeting_link, registration_link, max_participants,
-       image_url, tags, is_featured, req.user.id]
-    );
-    res.status(201).json({ success: true, event: rows[0] });
+    const doc = {};
+    for (const f of EVENT_CREATE_FIELDS) if (f in req.body) doc[f] = req.body[f];
+    doc.created_by = req.user.id;
+    const event = await Event.create(doc);
+    res.status(201).json({ success: true, event });
   })
 );
 
@@ -89,16 +77,16 @@ router.put(
   '/:id',
   authMiddleware,
   adminOnly,
-  schemas.uuidParam(),
+  schemas.idParam(),
   validate,
   asyncHandler(async (req, res) => {
-    const { setClause, values } = buildUpdate(req.body, EVENT_UPDATABLE_COLUMNS, req.params.id);
-    const { rows } = await pool.query(
-      `UPDATE events SET ${setClause}, updated_at = NOW() WHERE id = $1 RETURNING *`,
-      values
-    );
-    if (!rows[0]) throw new HttpError(404, 'Event not found');
-    res.json({ success: true, event: rows[0] });
+    const update = buildUpdate(req.body, EVENT_UPDATABLE_FIELDS);
+    const event = await Event.findByIdAndUpdate(req.params.id, update, {
+      new: true,
+      runValidators: true,
+    });
+    if (!event) throw new HttpError(404, 'Event not found');
+    res.json({ success: true, event });
   })
 );
 
@@ -106,11 +94,12 @@ router.delete(
   '/:id',
   authMiddleware,
   adminOnly,
-  schemas.uuidParam(),
+  schemas.idParam(),
   validate,
   asyncHandler(async (req, res) => {
-    const { rowCount } = await pool.query('DELETE FROM events WHERE id = $1', [req.params.id]);
-    if (!rowCount) throw new HttpError(404, 'Event not found');
+    const result = await Event.findByIdAndDelete(req.params.id);
+    if (!result) throw new HttpError(404, 'Event not found');
+    await EventRegistration.deleteMany({ event_id: req.params.id });
     res.json({ success: true, message: 'Event deleted' });
   })
 );
@@ -118,57 +107,55 @@ router.delete(
 router.post(
   '/:id/register',
   writeLimiter,
-  schemas.uuidParam(),
+  schemas.idParam(),
   schemas.eventRegister,
   validate,
   asyncHandler(async (req, res) => {
-    const client = await pool.connect();
+    const eventId = req.params.id;
+
+    // Atomically reserve a seat: only succeeds if event is open and not full.
+    const reserved = await Event.findOneAndUpdate(
+      {
+        _id: eventId,
+        status: { $nin: ['completed', 'cancelled'] },
+        $or: [
+          { max_participants: null },
+          { $expr: { $lt: ['$current_participants', '$max_participants'] } },
+        ],
+      },
+      { $inc: { current_participants: 1 } },
+      { new: true }
+    );
+
+    if (!reserved) {
+      const existing = await Event.findById(eventId).lean();
+      if (!existing) throw new HttpError(404, 'Event not found');
+      if (['completed', 'cancelled'].includes(existing.status)) {
+        throw new HttpError(400, `Registration closed: event is ${existing.status}`);
+      }
+      throw new HttpError(400, 'Event is full');
+    }
+
     try {
-      await client.query('BEGIN');
-
-      const eventRes = await client.query('SELECT * FROM events WHERE id = $1 FOR UPDATE', [req.params.id]);
-      const event = eventRes.rows[0];
-      if (!event) throw new HttpError(404, 'Event not found');
-      if (['completed', 'cancelled'].includes(event.status)) {
-        throw new HttpError(400, `Registration closed: event is ${event.status}`);
-      }
-      if (event.max_participants && event.current_participants >= event.max_participants) {
-        throw new HttpError(400, 'Event is full');
-      }
-
-      const dup = await client.query(
-        'SELECT id FROM event_registrations WHERE event_id = $1 AND email = $2',
-        [req.params.id, req.body.email]
-      );
-      if (dup.rows[0]) throw new HttpError(409, 'Already registered with this email');
-
-      const {
-        name, email, phone, college, branch, year_of_study,
-        roll_number, ieee_member_id, is_ieee_member, notes,
-      } = req.body;
-
-      const { rows } = await client.query(
-        `INSERT INTO event_registrations
-           (event_id, name, email, phone, college, branch, year_of_study,
-            roll_number, ieee_member_id, is_ieee_member, notes)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
-         RETURNING *`,
-        [req.params.id, name, email, phone, college, branch, year_of_study,
-         roll_number, ieee_member_id, is_ieee_member ?? false, notes]
-      );
-
-      await client.query(
-        'UPDATE events SET current_participants = current_participants + 1 WHERE id = $1',
-        [req.params.id]
-      );
-
-      await client.query('COMMIT');
-      res.status(201).json({ success: true, registration: rows[0], message: 'Registration successful' });
+      const registration = await EventRegistration.create({
+        event_id: eventId,
+        name: req.body.name,
+        email: req.body.email,
+        phone: req.body.phone,
+        college: req.body.college,
+        branch: req.body.branch,
+        year_of_study: req.body.year_of_study,
+        roll_number: req.body.roll_number,
+        ieee_member_id: req.body.ieee_member_id,
+        is_ieee_member: req.body.is_ieee_member ?? false,
+        notes: req.body.notes,
+      });
+      res.status(201).json({ success: true, registration, message: 'Registration successful' });
     } catch (err) {
-      await client.query('ROLLBACK').catch(() => {});
+      // Rollback the reservation on failure.
+      await Event.updateOne({ _id: eventId }, { $inc: { current_participants: -1 } }).catch(() => {});
+      if (err.code === 11000) throw new HttpError(409, 'Already registered with this email');
       throw err;
-    } finally {
-      client.release();
     }
   })
 );
@@ -177,14 +164,12 @@ router.get(
   '/:id/registrations',
   authMiddleware,
   adminOnly,
-  schemas.uuidParam(),
+  schemas.idParam(),
   validate,
   asyncHandler(async (req, res) => {
-    const { rows } = await pool.query(
-      'SELECT * FROM event_registrations WHERE event_id = $1 ORDER BY registered_at DESC',
-      [req.params.id]
-    );
-    res.json({ success: true, registrations: rows });
+    const registrations = await EventRegistration.find({ event_id: req.params.id })
+      .sort({ registered_at: -1 });
+    res.json({ success: true, registrations });
   })
 );
 

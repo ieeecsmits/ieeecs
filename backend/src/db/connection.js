@@ -1,16 +1,32 @@
-const { Pool } = require('pg');
+const mongoose = require('mongoose');
 const env = require('../config/env');
 
-const pool = new Pool({
-  connectionString: env.databaseUrl,
-  ssl: env.isProduction ? { rejectUnauthorized: false } : false,
-  max: Number(process.env.PG_POOL_MAX) || 10,
-  idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 10_000,
-});
+mongoose.set('strictQuery', true);
 
-pool.on('error', (err) => {
-  console.error('❌ PostgreSQL pool error:', err);
-});
+let connectPromise;
 
-module.exports = pool;
+const connect = () => {
+  if (!connectPromise) {
+    connectPromise = mongoose
+      .connect(env.mongoUri, {
+        autoIndex: env.mongooseAutoIndex,
+        serverSelectionTimeoutMS: 10_000,
+        maxPoolSize: Number(process.env.MONGO_POOL_MAX) || 10,
+      })
+      .then((m) => {
+        console.log('✅ Connected to MongoDB');
+        return m;
+      })
+      .catch((err) => {
+        console.error('❌ MongoDB connection error:', err.message);
+        throw err;
+      });
+  }
+  return connectPromise;
+};
+
+mongoose.connection.on('disconnected', () => console.warn('⚠️  MongoDB disconnected'));
+mongoose.connection.on('reconnected', () => console.log('✅ MongoDB reconnected'));
+mongoose.connection.on('error', (err) => console.error('❌ MongoDB error:', err));
+
+module.exports = { mongoose, connect };

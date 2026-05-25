@@ -1,243 +1,413 @@
 # IEEE Computer Society SBC MITS — College Chapter Website
 
-A full-stack website for your IEEE CS student chapter built with **React + TypeScript** (frontend) and **Node.js + Express + PostgreSQL** (backend).
+Full-stack website for the IEEE CS student chapter.
+
+| Layer    | Tech                                                                   |
+| -------- | ---------------------------------------------------------------------- |
+| Frontend | React 18, TypeScript, Vite, React Router 6, Axios, TanStack Query      |
+| Backend  | Node.js, Express 4, Mongoose, JWT, bcryptjs, helmet, express-validator |
+| Database | MongoDB 6+                                                             |
 
 ---
 
-## 🎨 Design
-
-- **Color Palette**: Warm Gold (`#F5C518`) · Cream (`#FDF8EE`) · Charcoal (`#1A1A2E`)
-- **Fonts**: Bebas Neue (display) + DM Serif Display (headings) + DM Sans (body)
-- **Smooth scrolling**, hover animations, responsive grid layouts
-
----
-
-## 📁 Project Structure
+## Repository layout
 
 ```
 ieee-cs-website/
-├── frontend/               # React + TypeScript + Vite
-│   └── src/
-│       ├── components/     # Navbar, Footer
-│       ├── context/        # AuthContext (JWT)
-│       ├── pages/          # All route pages
-│       ├── services/       # Axios API layer
-│       └── styles/         # Global CSS variables
-│
-└── backend/                # Node.js + Express
-    └── src/
-        ├── db/             # connection.js, migrate.js, seed.js
-        ├── middleware/     # JWT auth middleware
-        └── routes/         # auth, events, office-bearers, gallery, membership, contact
+├── backend/                   # Express API
+│   ├── src/
+│   │   ├── config/env.js      # validated env vars
+│   │   ├── db/
+│   │   │   ├── connection.js  # mongoose connect()
+│   │   │   ├── syncIndexes.js # `npm run db:sync-indexes`
+│   │   │   └── seed.js        # `npm run db:seed`
+│   │   ├── middleware/        # auth, asyncHandler, errorHandler, rateLimits, validate
+│   │   ├── models/            # Mongoose schemas
+│   │   ├── routes/            # auth, events, officeBearers, misc
+│   │   ├── utils/             # HttpError, buildUpdate
+│   │   ├── validators/        # express-validator schemas
+│   │   └── index.js           # app entrypoint
+│   ├── .env.example
+│   └── package.json
+├── frontend/                  # Vite + React SPA
+│   ├── src/
+│   │   ├── components/        # Navbar, Footer, …
+│   │   ├── context/           # AuthContext (JWT)
+│   │   ├── pages/             # route views
+│   │   ├── services/api.ts    # axios client
+│   │   └── styles/            # global CSS
+│   ├── .env.example
+│   └── package.json
+├── package.json               # workspace helper scripts
+└── vercel.json                # SPA rewrites
 ```
 
 ---
 
-## 🚀 Quick Setup
+## Prerequisites
 
-### 1. Install Dependencies
+| Tool         | Version              | Notes                                                                  |
+| ------------ | -------------------- | ---------------------------------------------------------------------- |
+| Node.js      | 18 LTS or 20 LTS     | `node --version`                                                       |
+| npm          | 9+                   | ships with Node                                                        |
+| MongoDB      | 6.x or 7.x           | local server **or** a free MongoDB Atlas cluster                       |
+| Git          | any recent           | for cloning                                                            |
+
+> Windows users: the project is tested on Windows 11 with PowerShell and Git Bash. Commands below use bash syntax; in PowerShell, swap `&&` for `;` or run each command separately.
+
+---
+
+## 1. Clone & install
 
 ```bash
-# Backend
-cd backend && npm install
+git clone <your-repo-url> ieee-cs-website
+cd ieee-cs-website
+npm run install:all     # installs both backend/ and frontend/ deps
+```
 
-# Frontend
+Or install them individually:
+
+```bash
+cd backend  && npm install
 cd ../frontend && npm install
 ```
 
-### 2. Setup PostgreSQL Database
+---
 
-Create a database:
-```sql
-CREATE DATABASE ieee_cs_db;
+## 2. Provision MongoDB
+
+You need a running MongoDB instance and a connection string (URI). Pick **one**:
+
+### Option A — Local MongoDB
+
+1. Install MongoDB Community Server: <https://www.mongodb.com/try/download/community>.
+2. Start the service:
+   - **macOS (Homebrew)**: `brew services start mongodb-community`
+   - **Linux (systemd)**: `sudo systemctl start mongod`
+   - **Windows**: MongoDB is installed as a Windows service named `MongoDB` — start it from `services.msc` or run `net start MongoDB` in an admin shell.
+3. Verify it's listening:
+   ```bash
+   mongosh "mongodb://127.0.0.1:27017"
+   ```
+4. Your URI is:
+   ```
+   mongodb://127.0.0.1:27017/ieee_cs
+   ```
+   Mongoose will create the `ieee_cs` database on first write — no manual `CREATE DATABASE` step required.
+
+### Option B — MongoDB Atlas (cloud, free tier)
+
+1. Sign up at <https://www.mongodb.com/cloud/atlas> and create a free **M0** cluster.
+2. **Database Access** → create a user (e.g. `ieeecs`) with a strong password.
+3. **Network Access** → allow your IP (or `0.0.0.0/0` for dev).
+4. **Database** → *Connect* → *Drivers* → copy the URI. It looks like:
+   ```
+   mongodb+srv://ieeecs:<password>@cluster0.xxxxx.mongodb.net/ieee_cs?retryWrites=true&w=majority
+   ```
+5. Replace `<password>` with the URL-encoded password and append the database name (`/ieee_cs`).
+
+---
+
+## 3. Configure environment variables
+
+### 3a. Backend — `backend/.env`
+
+```bash
+cd backend
+cp .env.example .env
 ```
 
-### 3. Configure Environment Variables
+Edit `backend/.env` and fill in at minimum:
 
-**Backend** — copy `.env.example` to `.env`:
-```
-PORT=5000
-DATABASE_URL=postgresql://YOUR_USER:YOUR_PASSWORD@localhost:5432/ieee_cs_db
-JWT_SECRET=your_super_secret_key_here
-JWT_EXPIRES_IN=7d
-FRONTEND_URL=http://localhost:5173
+| Variable              | Required | Example                                          | Notes                                                                       |
+| --------------------- | -------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
+| `PORT`                | no       | `5000`                                           | API port                                                                    |
+| `NODE_ENV`            | no       | `development` / `production`                     | toggles dev-vs-prod error verbosity, error logging, autoIndex behavior      |
+| `TRUST_PROXY`         | no       | `false`                                          | set `true` only when behind a proxy (nginx, Render, Fly, etc.)              |
+| `FRONTEND_URL`        | no       | `http://localhost:5173`                          | comma-separated allowlist for CORS                                          |
+| `MONGODB_URI`         | **yes**  | `mongodb://127.0.0.1:27017/ieee_cs`              | the URI from step 2                                                         |
+| `MONGOOSE_AUTO_INDEX` | no       | `true` (dev) / `false` (prod)                    | when `false`, you must run `npm run db:sync-indexes` after schema changes   |
+| `JWT_SECRET`          | **yes**  | (random 64 hex chars)                            | generate with `openssl rand -hex 64` or `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` |
+| `JWT_EXPIRES_IN`      | no       | `7d`                                             | any [vercel/ms](https://github.com/vercel/ms) duration                      |
+| `BCRYPT_ROUNDS`       | no       | `12`                                             | bcrypt cost factor (10–14)                                                  |
+| `SEED_ADMIN_EMAIL`    | seed     | `admin@ieeecs.ac.in`                             | only needed when running `db:seed`                                          |
+| `SEED_ADMIN_PASSWORD` | seed     | ≥ 12 characters                                  | only needed when running `db:seed`. Refuses to run if shorter or missing.   |
+
+The server **will not start** if `MONGODB_URI` or `JWT_SECRET` is missing — it fails fast with a clear error.
+
+### 3b. Frontend — `frontend/.env`
+
+```bash
+cd ../frontend
+cp .env.example .env
 ```
 
-**Frontend** — copy `.env.example` to `.env`:
+Single variable:
+
 ```
 VITE_API_URL=http://localhost:5000/api
 ```
 
-### 4. Run Database Migrations & Seed
+In production set it to your deployed backend URL, e.g. `https://api.your-domain.com/api`.
+
+---
+
+## 4. Initialize the database
+
+From `backend/`:
+
+```bash
+# Build all indexes (compound unique on event_registrations, etc.).
+# Safe to re-run.
+npm run db:sync-indexes
+
+# Optional: seed an admin user, sample events, and the office-bearer list.
+# Requires SEED_ADMIN_PASSWORD in .env (≥ 12 chars).
+npm run db:seed
+```
+
+The same scripts can be invoked from the repo root:
+
+```bash
+npm run db:sync-indexes
+npm run db:seed
+```
+
+---
+
+## 5. Run in development
+
+You need **two terminals**.
+
+**Terminal 1 — backend**
 
 ```bash
 cd backend
-npm run db:migrate   # Creates all tables
-npm run db:seed      # Inserts sample data + admin user
+npm run dev
+# → 🚀 IEEE CS API running on http://localhost:5000 [development]
 ```
 
-### 5. Start Development Servers
+`npm run dev` uses `nodemon`, so it auto-reloads on file changes.
 
-**Backend** (Terminal 1):
+**Terminal 2 — frontend**
+
 ```bash
-cd backend && npm run dev
-# Runs on http://localhost:5000
+cd frontend
+npm run dev
+# → VITE  ready in xxx ms
+#   ➜ Local: http://localhost:5173/
 ```
 
-**Frontend** (Terminal 2):
+Open <http://localhost:5173>. The Vite dev server proxies your API calls through Axios to `VITE_API_URL` (the backend). CORS is already configured to accept `http://localhost:5173`.
+
+### Verify the connection
+
 ```bash
-cd frontend && npm run dev
-# Runs on http://localhost:5173
+curl http://localhost:5000/health
+# {"success":true,"message":"IEEE CS API is running","db":"connected","timestamp":"…"}
 ```
+
+If `db` reports anything other than `connected`, check `MONGODB_URI` and that MongoDB is actually running.
 
 ---
 
-## 🔑 Default Admin Login
+## 6. Default admin login
+
+After running `npm run db:seed` you can log in at <http://localhost:5173/admin/login> with:
 
 ```
-Email:    admin@ieeecs.edu
-Password: admin@ieee123
+Email:    <whatever SEED_ADMIN_EMAIL you set>
+Password: <whatever SEED_ADMIN_PASSWORD you set>
 ```
 
-Visit: http://localhost:5173/admin/login
+There is **no** hardcoded default password — the seed script refuses to run without one.
 
 ---
 
-## 📄 Pages
+## 7. How the two halves connect
 
-| Route | Page |
-|-------|------|
-| `/` | Home — Hero, Stats, About snippet, Events |
-| `/about` | About IEEE CS — Mission, Vision, IEEE global |
-| `/events` | Events — Filter by type & status |
-| `/events/:id` | Event Detail + Registration Form |
-| `/events/:id/register` | Direct Registration |
-| `/register` | Register / Participate (redirects to events) |
-| `/office-bearers` | Leadership — Core team + All divisions |
-| `/membership` | Membership Application |
-| `/gallery` | Photo Gallery with lightbox |
-| `/contact` | Contact Form |
-| `/admin/login` | Admin Login |
-| `/admin` | Admin Dashboard |
+```
+┌──────────────┐  HTTPS/JSON  ┌──────────────┐   Mongoose   ┌──────────────┐
+│  React SPA   │ ───────────▶ │ Express API  │ ───────────▶ │   MongoDB    │
+│ (Vite, 5173) │  Bearer JWT  │ (Node, 5000) │              │  (27017)     │
+└──────────────┘              └──────────────┘              └──────────────┘
+        ▲                              │
+        └──── Authorization: Bearer ───┘
+              (JWT stored in localStorage as `ieee_token`)
+```
+
+- **Axios client** ([frontend/src/services/api.ts](frontend/src/services/api.ts)) reads `VITE_API_URL` and attaches `Authorization: Bearer <token>` to every request when a token exists in `localStorage` under the key `ieee_token`.
+- **CORS** ([backend/src/index.js](backend/src/index.js)) accepts only origins listed in `FRONTEND_URL` (comma-separated). Update it for every deployment URL.
+- **JWT** is signed with `JWT_SECRET` and verified by `authMiddleware`. `adminOnly` guards admin routes.
+- **Rate limits**: global 300 req / 15 min on `/api`; 10 failed logins / 15 min; 20 public-write submissions / 10 min.
 
 ---
 
-## 🗄️ API Endpoints
+## 8. API reference
+
+All responses follow `{ success: boolean, ... }`. Errors look like `{ success: false, message: "...", details?: [...] }`.
 
 ### Auth
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/login` | Login |
-| GET | `/api/auth/me` | Get current user |
+
+| Method | Path             | Auth  | Body                            |
+| ------ | ---------------- | ----- | ------------------------------- |
+| POST   | `/api/auth/login`| —     | `{ email, password }`           |
+| GET    | `/api/auth/me`   | JWT   | —                               |
 
 ### Events
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/events` | List all events (filter: status, type, featured) |
-| GET | `/api/events/:id` | Get single event |
-| POST | `/api/events` | Create event (admin) |
-| PUT | `/api/events/:id` | Update event (admin) |
-| DELETE | `/api/events/:id` | Delete event (admin) |
-| POST | `/api/events/:id/register` | Register for event |
-| GET | `/api/events/:id/registrations` | Get registrations (admin) |
 
-### Office Bearers
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/office-bearers` | List all |
-| POST | `/api/office-bearers` | Create (admin) |
-| PUT | `/api/office-bearers/:id` | Update (admin) |
-| DELETE | `/api/office-bearers/:id` | Delete (admin) |
+| Method | Path                                | Auth  | Notes                                                              |
+| ------ | ----------------------------------- | ----- | ------------------------------------------------------------------ |
+| GET    | `/api/events`                       | —     | query: `status`, `type`, `featured=true`, `limit` (≤100), `offset` |
+| GET    | `/api/events/:id`                   | —     | `:id` must be a valid Mongo ObjectId                               |
+| POST   | `/api/events`                       | admin | full event body                                                    |
+| PUT    | `/api/events/:id`                   | admin | partial update (whitelisted fields only)                           |
+| DELETE | `/api/events/:id`                   | admin | also deletes its `event_registrations`                             |
+| POST   | `/api/events/:id/register`          | —     | atomic capacity check + unique `(event_id, email)`                 |
+| GET    | `/api/events/:id/registrations`     | admin | —                                                                  |
+
+### Office bearers
+
+| Method | Path                          | Auth  |
+| ------ | ----------------------------- | ----- |
+| GET    | `/api/office-bearers`         | —     |
+| POST   | `/api/office-bearers`         | admin |
+| PUT    | `/api/office-bearers/:id`     | admin |
+| DELETE | `/api/office-bearers/:id`     | admin |
 
 ### Gallery
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/gallery` | List images |
-| POST | `/api/gallery` | Add image (admin) |
-| DELETE | `/api/gallery/:id` | Delete (admin) |
+
+| Method | Path                  | Auth  |
+| ------ | --------------------- | ----- |
+| GET    | `/api/gallery`        | —     |
+| POST   | `/api/gallery`        | admin |
+| DELETE | `/api/gallery/:id`    | admin |
 
 ### Membership
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/membership/apply` | Apply for membership |
-| GET | `/api/membership` | List applications (admin) |
-| PUT | `/api/membership/:id/status` | Update status (admin) |
+
+| Method | Path                              | Auth  |
+| ------ | --------------------------------- | ----- |
+| POST   | `/api/membership/apply`           | —     |
+| GET    | `/api/membership`                 | admin |
+| PUT    | `/api/membership/:id/status`      | admin |
 
 ### Contact
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/contact` | Send message |
-| GET | `/api/contact` | List messages (admin) |
+
+| Method | Path             | Auth  |
+| ------ | ---------------- | ----- |
+| POST   | `/api/contact`   | —     |
+| GET    | `/api/contact`   | admin |
+
+### Health
+
+| Method | Path       | Auth |
+| ------ | ---------- | ---- |
+| GET    | `/health`  | —    |
 
 ---
 
-## 🗃️ Database Schema (PostgreSQL)
+## 9. Production build
 
-- `users` — Admin users
-- `events` — All chapter events
-- `event_registrations` — Event participant registrations
-- `office_bearers` — Leadership team
-- `gallery` — Photo gallery images
-- `memberships` — Membership applications
-- `contacts` — Contact form messages
-- `achievements` — Awards & achievements
+### Frontend
 
----
-
-## 🛠️ Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 18, TypeScript, Vite |
-| Routing | React Router v6 |
-| Styling | Pure CSS with CSS Variables |
-| HTTP Client | Axios |
-| Auth | JWT (jsonwebtoken) |
-| Backend | Node.js, Express.js |
-| Database | PostgreSQL (via `pg`) |
-| ORM | Raw SQL queries |
-| Notifications | react-hot-toast |
-
----
-
-## 🌐 Office Bearers (Tenure 2025–2026)
-
-Data sourced from the official IEEE CS MITS chapter:
-
-**Core Leadership:**
-- Ayan Ahmed Khan — Chairperson
-- Gagandeep Kushwah — Vice Chairperson
-- Divita Joshi — Secretary
-- Devanshu Gupta — Treasurer
-
-**Divisions:** Technical Development · Operations & Management · Public Relations · Content & Copywriting · Creative Design
-
----
-
-## 🚢 Deployment
-
-### Frontend (Vercel)
 ```bash
-cd frontend && npm run build
-# Deploy `dist/` to Vercel / Netlify
+cd frontend
+npm run build       # outputs frontend/dist/
+npm run preview     # local preview of the production build
 ```
 
-### Backend (Railway / Render)
-- Set all environment variables in the platform dashboard
-- Use `npm start` as the start command
-- Use a managed PostgreSQL service (Railway, Supabase, Neon)
+### Backend
+
+```bash
+cd backend
+NODE_ENV=production npm start
+```
+
+In production:
+- `MONGOOSE_AUTO_INDEX` is forced to `false` — run `npm run db:sync-indexes` once during deploy.
+- `helmet`, `compression`, and `morgan` (combined log format) are active.
+- Error messages with status ≥ 500 are masked (`"Internal server error"`); stack traces are never returned to the client.
 
 ---
 
-## 📝 Customization
+## 10. Deployment
 
-1. **Update college name/details** — Search for "Your College" across all files
-2. **Replace placeholder photos** — Update `LEADERSHIP` array in `OfficeBearers.tsx` with real photo URLs
-3. **Update contact info** — Edit `Footer.tsx` and `Contact.tsx`
-4. **Add LinkedIn/GitHub links** — Update social links in `OfficeBearers.tsx`
+### Frontend on Vercel
+
+1. Import the repo in Vercel.
+2. **Root Directory**: `frontend`
+3. **Build Command**: `npm run build`
+4. **Output Directory**: `dist`
+5. **Environment Variable**: `VITE_API_URL=https://api.your-domain.com/api`
+6. Vercel uses `vercel.json` for SPA route rewrites — every path falls back to `index.html` for React Router.
+
+### Backend on Render / Railway / Fly.io
+
+1. **Build command**: `npm install`
+2. **Start command**: `npm start`
+3. **Root directory**: `backend`
+4. **Environment variables** (paste from your `.env`, except `SEED_*` which are only needed for the seed step):
+   - `NODE_ENV=production`
+   - `MONGODB_URI=...`
+   - `JWT_SECRET=...`
+   - `FRONTEND_URL=https://your-frontend.vercel.app`
+   - `TRUST_PROXY=true`  *(required if the platform terminates TLS in front of Node — Render, Fly, Railway all do)*
+5. **One-time post-deploy**: shell into the instance (or use a release task) and run `npm run db:sync-indexes`.
+
+### Database
+
+- **MongoDB Atlas** (recommended) — free M0 tier is enough for development and small production.
+- Add the deployment platform's egress IPs to Atlas Network Access (or `0.0.0.0/0` for simplicity, paired with strong DB credentials).
 
 ---
 
-Made with ❤️ for IEEE CS chapters everywhere.
-"# ieecs" 
-"# ieeecs" 
+## 11. Troubleshooting
+
+| Symptom                                                          | Likely cause / fix                                                                                                                   |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `❌ Missing required environment variables: MONGODB_URI`         | You haven't created `backend/.env`, or `MONGODB_URI` is empty.                                                                       |
+| `MongooseServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017` | MongoDB isn't running locally. Start it (see step 2A) or switch to an Atlas URI.                                                  |
+| Atlas: `bad auth: Authentication failed`                         | The user/password in the URI is wrong, or the password contains special chars that aren't URL-encoded.                               |
+| `CORS blocked: http://...`                                       | The origin isn't in `FRONTEND_URL`. Add it (comma-separated for multiple).                                                           |
+| `429 Too many login attempts`                                    | The auth rate limiter tripped (10 failed logins / 15 min per IP). Wait it out, or in dev edit `backend/src/middleware/rateLimits.js`. |
+| `id must be a valid Mongo ObjectId`                              | The URL path contains an ID that isn't 24-hex-character ObjectId. Most likely a leftover UUID from the old Postgres version.         |
+| Frontend gets 404 from `/api/...`                                | `VITE_API_URL` is wrong or the backend isn't running on the port it points at. Hit `/health` directly to confirm.                    |
+| Seed fails: `SEED_ADMIN_PASSWORD must be at least 12 characters` | Set a longer password in `backend/.env`.                                                                                             |
+| `npm run db:seed` says "duplicate key"                           | The seed script is idempotent — duplicates are safely ignored via `$setOnInsert`. If you see this it's something else; check the log.|
+
+---
+
+## 12. Useful commands cheat-sheet
+
+From **`backend/`**:
+
+| Command                       | What it does                                            |
+| ----------------------------- | ------------------------------------------------------- |
+| `npm run dev`                 | start with nodemon                                      |
+| `npm start`                   | start without auto-reload (production)                  |
+| `npm run lint`                | ESLint                                                  |
+| `npm run db:sync-indexes`     | create/update all Mongoose indexes                      |
+| `npm run db:seed`             | upsert admin user, sample events, office bearers        |
+
+From **`frontend/`**:
+
+| Command                       | What it does                                            |
+| ----------------------------- | ------------------------------------------------------- |
+| `npm run dev`                 | Vite dev server on port 5173                            |
+| `npm run build`               | production build → `dist/`                              |
+| `npm run preview`             | serve the production build locally                      |
+| `npm run lint`                | ESLint                                                  |
+
+From the **repo root**:
+
+| Command                       | What it does                                            |
+| ----------------------------- | ------------------------------------------------------- |
+| `npm run install:all`         | install both backend and frontend dependencies          |
+| `npm run dev:backend`         | shortcut for `cd backend && npm run dev`                |
+| `npm run dev:frontend`        | shortcut for `cd frontend && npm run dev`               |
+| `npm run db:sync-indexes`     | run the backend's index sync                            |
+| `npm run db:seed`             | run the backend's seed script                           |
+
+---
+
+Made for IEEE CS chapters.
