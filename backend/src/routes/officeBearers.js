@@ -37,18 +37,28 @@ router.post('/', authMiddleware, adminOnly, async (req, res) => {
   }
 });
 
+const BEARER_UPDATABLE_COLUMNS = new Set([
+  'name', 'position', 'department', 'year', 'email',
+  'linkedin_url', 'github_url', 'image_url', 'bio',
+  'order_index', 'is_active', 'tenure_year',
+]);
+
 // PUT /api/office-bearers/:id (admin only)
 router.put('/:id', authMiddleware, adminOnly, async (req, res) => {
   try {
-    const fields = req.body;
-    const setClause = Object.keys(fields).map((k, i) => `${k} = $${i + 2}`).join(', ');
+    const entries = Object.entries(req.body).filter(([k]) => BEARER_UPDATABLE_COLUMNS.has(k));
+    if (entries.length === 0) {
+      return res.status(400).json({ success: false, message: 'No updatable fields provided' });
+    }
+    const setClause = entries.map(([k], i) => `${k} = $${i + 2}`).join(', ');
     const result = await pool.query(
       `UPDATE office_bearers SET ${setClause} WHERE id = $1 RETURNING *`,
-      [req.params.id, ...Object.values(fields)]
+      [req.params.id, ...entries.map(([, v]) => v)]
     );
+    if (!result.rows[0]) return res.status(404).json({ success: false, message: 'Office bearer not found' });
     res.json({ success: true, bearer: result.rows[0] });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
 });
 
@@ -58,6 +68,7 @@ router.delete('/:id', authMiddleware, adminOnly, async (req, res) => {
     await pool.query('DELETE FROM office_bearers WHERE id = $1', [req.params.id]);
     res.json({ success: true, message: 'Deleted' });
   } catch (err) {
+    console.error('DELETE /office-bearers/:id error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

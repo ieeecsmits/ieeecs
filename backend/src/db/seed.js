@@ -98,15 +98,16 @@ const seed = async () => {
     }
 
     await client.query('COMMIT');
-    console.log(' Database seeded successfully!');
+    console.log('✅ Database seeded successfully!');
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error(' Seeding failed:', err);
+    console.error('❌ Seeding failed:', err);
     throw err;
   } finally {
     client.release();
-    process.exit(0);
   }
 };
 
-seed();
+seed()
+  .then(() => process.exit(0))
+  .catch(() => process.exit(1));

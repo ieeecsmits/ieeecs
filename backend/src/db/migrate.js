@@ -157,8 +157,9 @@ const createTables = async () => {
     throw err;
   } finally {
     client.release();
-    process.exit(0);
   }
 };
 
-createTables();
+createTables()
+  .then(() => process.exit(0))
+  .catch(() => process.exit(1));

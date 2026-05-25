@@ -20,10 +20,15 @@ router.post('/login', async (req, res) => {
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) return res.status(401).json({ success: false, message: 'Invalid credentials' });
 
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET is not configured');
+      return res.status(500).json({ success: false, message: 'Server misconfigured' });
+    }
+
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role, name: user.name },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 
     res.json({ success: true, token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
@@ -38,6 +43,7 @@ router.get('/me', authMiddleware, async (req, res) => {
     const result = await pool.query('SELECT id, name, email, role, created_at FROM users WHERE id = $1', [req.user.id]);
     res.json({ success: true, user: result.rows[0] });
   } catch (err) {
+    console.error('GET /auth/me error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

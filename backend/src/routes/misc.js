@@ -22,6 +22,7 @@ router.get('/gallery', async (req, res) => {
     const result = await pool.query(query, params);
     res.json({ success: true, images: result.rows });
   } catch (err) {
+    console.error('GET /gallery error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -46,6 +47,7 @@ router.delete('/gallery/:id', authMiddleware, adminOnly, async (req, res) => {
     await pool.query('DELETE FROM gallery WHERE id = $1', [req.params.id]);
     res.json({ success: true, message: 'Deleted' });
   } catch (err) {
+    console.error('DELETE /gallery/:id error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -76,20 +78,28 @@ router.get('/membership', authMiddleware, adminOnly, async (req, res) => {
     const result = await pool.query('SELECT * FROM memberships ORDER BY applied_at DESC');
     res.json({ success: true, memberships: result.rows });
   } catch (err) {
+    console.error('GET /membership error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+
+const MEMBERSHIP_STATUSES = new Set(['pending', 'active', 'expired', 'rejected']);
 
 // PUT /api/membership/:id/status (admin only)
 router.put('/membership/:id/status', authMiddleware, adminOnly, async (req, res) => {
   try {
     const { status } = req.body;
+    if (!MEMBERSHIP_STATUSES.has(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
     const result = await pool.query(
       `UPDATE memberships SET status = $1, approved_at = $2, approved_by = $3 WHERE id = $4 RETURNING *`,
       [status, status === 'active' ? new Date() : null, req.user.id, req.params.id]
     );
+    if (!result.rows[0]) return res.status(404).json({ success: false, message: 'Membership not found' });
     res.json({ success: true, membership: result.rows[0] });
   } catch (err) {
+    console.error('PUT /membership/:id/status error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -117,6 +127,7 @@ router.get('/contact', authMiddleware, adminOnly, async (req, res) => {
     const result = await pool.query('SELECT * FROM contacts ORDER BY created_at DESC');
     res.json({ success: true, contacts: result.rows });
   } catch (err) {
+    console.error('GET /contact error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
