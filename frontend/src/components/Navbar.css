@@ -21,7 +21,8 @@
   margin: 0 auto;
   padding: 0 1.75rem;
   height: 100%;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 1rem;
 }
@@ -68,70 +69,131 @@
   white-space: nowrap;
 }
 
-/* ── CENTER NAV ── */
+/* ── CENTER NAV: floating tubelight pod ── */
 .nav__links {
   display: flex;
   align-items: center;
   gap: 0.15rem;
-  flex: 1;
+  flex: 0 1 auto;
   justify-content: center;
   flex-wrap: nowrap;
+  padding: 0.32rem;
+  border-radius: 100px;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid var(--surface-border);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    0 6px 22px rgba(0,0,0,0.18);
+  justify-self: center;
+  width: max-content;
+  max-width: 100%;
+  transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+[data-theme="light"] .nav__links {
+  background: rgba(255,255,255,0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.6),
+    0 6px 22px rgba(0,0,0,0.06);
+}
+.nav--scrolled .nav__links {
+  background: rgba(255,255,255,0.05);
+  border-color: var(--gold-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 10px 28px rgba(0,0,0,0.25),
+    0 0 0 1px rgba(245,197,24,0.08);
+}
+[data-theme="light"] .nav--scrolled .nav__links {
+  background: rgba(255,255,255,0.85);
 }
 
 .nav__link {
   position: relative;
-  font-size: 0.84rem;
-  font-weight: 500;
+  isolation: isolate;          /* keep the tubelight pill below the text */
+  font-size: 0.83rem;
+  font-weight: 600;
   color: var(--text-secondary);
-  padding: 0.42rem 0.7rem;
-  border-radius: 7px;
-  transition: color 0.2s ease, background 0.2s ease;
+  padding: 0.5rem 1rem;
+  border-radius: 100px;
   text-decoration: none;
   background: none;
   border: none;
   cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  transition: color 0.2s ease;
+}
+.nav__link:hover { color: var(--text-primary); }
+
+.nav__link-text {
+  position: relative;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  white-space: nowrap;
-  letter-spacing: 0.01em;
 }
-
-.nav__link:hover {
-  color: var(--text-primary);
-  background: var(--surface-hover);
-}
+.nav__chev { transition: transform 0.25s ease; }
 
 .nav__link--active {
-  color: var(--gold) !important;
-  background: var(--gold-light) !important;
+  color: var(--gold);
 }
 
-.nav__link--active::after {
-  content: '';
+/* ── Tubelight: the moving pill behind the active link ── */
+.nav__tubelight {
   position: absolute;
-  bottom: 3px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 16px;
-  height: 2px;
-  background: var(--gold);
-  border-radius: 2px;
+  inset: 0;
+  z-index: 1;
+  border-radius: 100px;
+  background:
+    linear-gradient(180deg, rgba(245,197,24,0.18) 0%, rgba(245,197,24,0.10) 100%);
+  border: 1px solid var(--gold-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 4px 18px rgba(245,197,24,0.18);
+  pointer-events: none;
 }
 
-/* Pill / highlight link */
-.nav__link--pill {
-  background: var(--gold-light);
-  color: var(--gold) !important;
-  border: 1px solid var(--gold-border);
-  font-weight: 700;
-  padding: 0.42rem 0.95rem;
+/* The "tube" — bright line at the top edge of the pill */
+.nav__tubelight-bar {
+  position: absolute;
+  top: -2px; left: 50%;
+  transform: translateX(-50%);
+  width: 42%;
+  height: 3px;
+  border-radius: 100px;
+  background: var(--gold);
+  box-shadow:
+    0 0 10px var(--gold),
+    0 0 20px rgba(245,197,24,0.6);
 }
-.nav__link--pill:hover,
-.nav__link--pill-open {
-  background: var(--gold) !important;
-  color: #0D0D12 !important;
-  border-color: var(--gold) !important;
+
+/* Soft radial glow blooming above the pill */
+.nav__tubelight-glow {
+  position: absolute;
+  top: -28px; left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  height: 36px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(245,197,24,0.55), transparent 70%);
+  filter: blur(8px);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+[data-theme="light"] .nav__tubelight-bar {
+  box-shadow:
+    0 0 10px rgba(196,133,10,0.9),
+    0 0 18px rgba(196,133,10,0.45);
+}
+[data-theme="light"] .nav__tubelight-glow {
+  background: radial-gradient(closest-side, rgba(196,133,10,0.35), transparent 70%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav__tubelight { transition: none !important; }
 }
 
 /* ── DROPDOWN ── */

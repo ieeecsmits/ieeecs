@@ -1,9 +1,26 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Menu, X, ChevronDown, Sun, Moon } from 'lucide-react';
+import { LayoutGroup, motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import './Navbar.css';
+
+const Tubelight = () => (
+  <motion.span
+    layoutId="nav-tubelight"
+    className="nav__tubelight"
+    transition={{ type: 'spring', stiffness: 380, damping: 32, mass: 0.6 }}
+  >
+    <span className="nav__tubelight-bar" />
+    <span className="nav__tubelight-glow" />
+  </motion.span>
+);
+
+const isPathActive = (current: string, target: string) => {
+  if (target === '/') return current === '/';
+  return current === target || current.startsWith(`${target}/`);
+};
 
 const NAV_LINKS = [
   { label: 'Home',              path: '/' },
@@ -78,41 +95,61 @@ export default function Navbar() {
           </Link>
 
           {/* ── CENTER: Nav links ── */}
-          <nav className="nav__links">
-            {NAV_LINKS.map((link) =>
-              link.children ? (
-                <div
-                  key={link.path}
-                  className={`nav__drop-wrap ${dropOpen ? 'open' : ''}`}
-                  ref={dropRef}
-                  onMouseEnter={() => setDropOpen(true)}
-                  onMouseLeave={() => setDropOpen(false)}
-                >
-                  <button
-                    className={`nav__link nav__link--pill ${dropOpen ? 'nav__link--pill-open' : ''}`}
-                    onClick={() => setDropOpen(!dropOpen)}
-                    aria-expanded={dropOpen}
+          <nav className="nav__links" aria-label="Primary">
+            <LayoutGroup>
+              {NAV_LINKS.map((link) => {
+                const active = isPathActive(location.pathname, link.path);
+
+                if (link.children) {
+                  return (
+                    <div
+                      key={link.path}
+                      className={`nav__drop-wrap ${dropOpen ? 'open' : ''}`}
+                      ref={dropRef}
+                      onMouseEnter={() => setDropOpen(true)}
+                      onMouseLeave={() => setDropOpen(false)}
+                    >
+                      <button
+                        className={`nav__link ${active ? 'nav__link--active' : ''}`}
+                        onClick={() => setDropOpen(!dropOpen)}
+                        aria-expanded={dropOpen}
+                      >
+                        {active && <Tubelight />}
+                        <span className="nav__link-text">
+                          {link.label}
+                          <ChevronDown
+                            size={13}
+                            className="nav__chev"
+                            style={{ transform: dropOpen ? 'rotate(180deg)' : 'none' }}
+                          />
+                        </span>
+                      </button>
+                      <div className="nav__dropdown" role="menu">
+                        {link.children.map((c) => (
+                          <Link key={c.path} to={c.path} className="nav__drop-item" role="menuitem">{c.label}</Link>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <NavLink
+                    key={link.path}
+                    to={link.path}
+                    end={link.path === '/'}
+                    className={({ isActive }) => `nav__link ${isActive ? 'nav__link--active' : ''}`}
                   >
-                    {link.label}
-                    <ChevronDown size={13} style={{ transition: 'transform .25s', transform: dropOpen ? 'rotate(180deg)' : 'none' }} />
-                  </button>
-                  <div className="nav__dropdown">
-                    {link.children.map((c) => (
-                      <Link key={c.path} to={c.path} className="nav__drop-item">{c.label}</Link>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <NavLink
-                  key={link.path}
-                  to={link.path}
-                  end={link.path === '/'}
-                  className={({ isActive }) => `nav__link ${isActive ? 'nav__link--active' : ''}`}
-                >
-                  {link.label}
-                </NavLink>
-              )
-            )}
+                    {({ isActive }) => (
+                      <>
+                        {isActive && <Tubelight />}
+                        <span className="nav__link-text">{link.label}</span>
+                      </>
+                    )}
+                  </NavLink>
+                );
+              })}
+            </LayoutGroup>
           </nav>
 
           {/* ── RIGHT: Controls + MITS Logo ── */}
