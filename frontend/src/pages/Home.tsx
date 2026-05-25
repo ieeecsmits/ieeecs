@@ -215,18 +215,47 @@ export default function Home() {
         <motion.div className="hero__glow hero__glow--2" style={{ y: glowY2 }} />
         <motion.div className="hero__glow hero__glow--3" style={{ y: glowY3 }} />
 
-        {/* Dotted SVG ring behind the card — slow rotation */}
+        {/* IEEE-CS branded ring — rotating wordmark text on a circular path */}
         <div className="hero__ring" aria-hidden="true">
           <svg viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet">
             <defs>
-              <linearGradient id="hero-ring-grad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%"   stopColor="rgba(245,197,24,0.55)" />
-                <stop offset="55%"  stopColor="rgba(245,197,24,0.12)" />
+              {/* Path the wordmark rides on — circle traced counter-clockwise
+                  so the text reads upright along the outside. */}
+              <path
+                id="hero-ring-path"
+                d="M 300,300 m -240,0 a 240,240 0 1,1 480,0 a 240,240 0 1,1 -480,0"
+              />
+              <linearGradient id="hero-ring-fade" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%"   stopColor="rgba(245,197,24,0.95)" />
+                <stop offset="60%"  stopColor="rgba(245,197,24,0.35)" />
                 <stop offset="100%" stopColor="rgba(245,197,24,0)" />
               </linearGradient>
             </defs>
-            <circle cx="300" cy="300" r="278" fill="none" stroke="url(#hero-ring-grad)" strokeWidth="1.2" strokeDasharray="2 7" />
-            <circle cx="300" cy="300" r="220" fill="none" stroke="rgba(245,197,24,0.10)" strokeWidth="1" strokeDasharray="1 4" />
+
+            {/* Thin solid outer ring — clean, no clock-face dashes */}
+            <circle cx="300" cy="300" r="270" fill="none" stroke="rgba(245,197,24,0.18)" strokeWidth="1" />
+
+            {/* Compass nodes at N / E / S / W — small gold ticks */}
+            <g stroke="rgba(245,197,24,0.7)" strokeWidth="1.5" strokeLinecap="round">
+              <line x1="300" y1="24"  x2="300" y2="40"  />
+              <line x1="576" y1="300" x2="560" y2="300" />
+              <line x1="300" y1="576" x2="300" y2="560" />
+              <line x1="24"  y1="300" x2="40"  y2="300" />
+            </g>
+
+            {/* Rotating wordmark — IEEE Computer Society identity */}
+            <text
+              className="hero__ring-text"
+              fill="url(#hero-ring-fade)"
+              fontFamily="'DM Sans', sans-serif"
+              fontSize="13"
+              fontWeight="700"
+              letterSpacing="6"
+            >
+              <textPath href="#hero-ring-path" startOffset="0">
+                IEEE  ·  COMPUTER  SOCIETY  ·  MITS  STUDENT  CHAPTER  ·  TENURE  2025—26  ·  EST  2019  ·
+              </textPath>
+            </text>
           </svg>
         </div>
 
@@ -579,7 +608,7 @@ function CharReveal({ text, baseDelay = 0 }: { text: string; baseDelay?: number 
   return (
     <span className="char-reveal">
       {chars.map((c, i) => (
-        <span className="char-reveal__char" key={i} aria-hidden="true">
+        <span className="char-reveal__char" key={i}>
           <motion.span
             className="char-reveal__inner"
             initial={{ y: '110%', opacity: 0 }}
@@ -594,7 +623,6 @@ function CharReveal({ text, baseDelay = 0 }: { text: string; baseDelay?: number 
           </motion.span>
         </span>
       ))}
-      <span className="visually-hidden">{text}</span>
     </span>
   );
 }

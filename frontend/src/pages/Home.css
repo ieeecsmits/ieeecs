@@ -91,22 +91,29 @@
     radial-gradient(ellipse 120% 70% at 50% 50%, transparent 60%, rgba(0,0,0,0.07) 100%);
 }
 
-/* Dotted ring behind the card — slow rotation, masked to soft edges */
+/* IEEE-CS branded ring behind the card.
+   - One clean thin gold outline (no dashes — avoids the clock-face look).
+   - A rotating IEEE/Computer Society wordmark on a circular path.
+   - Four small compass ticks at N/E/S/W to feel intentional, not decorative.
+   The whole element rotates once every 120s — barely perceptible motion. */
 .hero__ring {
   position: absolute;
   top: 50%;
   right: -4%;
-  width: 720px; height: 720px;
+  width: 680px; height: 680px;
   transform: translateY(-50%);
   pointer-events: none;
   z-index: 0;
-  opacity: 0.85;
-  mask-image: radial-gradient(circle, #000 55%, transparent 100%);
-  -webkit-mask-image: radial-gradient(circle, #000 55%, transparent 100%);
-  animation: heroRingSpin 80s linear infinite;
+  opacity: 0.9;
+  mask-image: radial-gradient(circle, #000 58%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle, #000 58%, transparent 100%);
+  animation: heroRingSpin 120s linear infinite;
 }
-.hero__ring svg { width: 100%; height: 100%; }
+.hero__ring svg { width: 100%; height: 100%; display: block; }
+.hero__ring-text { text-transform: uppercase; }
 @keyframes heroRingSpin { to { transform: translateY(-50%) rotate(360deg); } }
+
+[data-theme="light"] .hero__ring { opacity: 0.55; }
 
 /* Vertical side rail */
 .hero__rail {
