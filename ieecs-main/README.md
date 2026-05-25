@@ -1,4 +1,4 @@
-# IEEE Computer Society — College Chapter Website
+# IEEE Computer Society SBC MITS — College Chapter Website
 
 A full-stack website for your IEEE CS student chapter built with **React + TypeScript** (frontend) and **Node.js + Express + PostgreSQL** (backend).
 
