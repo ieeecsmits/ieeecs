@@ -37,8 +37,8 @@
 }
 [data-theme="light"] .hero__noise { opacity: 0.18; }
 
-/* Layered radial glows */
-.hero__glow { position: absolute; border-radius: 50%; pointer-events: none; filter: blur(8px); }
+/* Layered radial glows — y is driven by scroll via framer-motion */
+.hero__glow { position: absolute; border-radius: 50%; pointer-events: none; filter: blur(8px); will-change: transform; }
 .hero__glow--1 {
   top: 8%; right: -8%;
   width: 620px; height: 620px;
@@ -56,6 +56,27 @@
   width: 280px; height: 280px;
   background: radial-gradient(circle, rgba(245,197,24,0.07) 0%, transparent 70%);
   animation: floatY 7s ease-in-out infinite;
+}
+
+/* Pointer-tracked spotlight — soft gold halo that follows the cursor */
+.hero__spotlight {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    420px circle at var(--spot-x, 50%) var(--spot-y, 30%),
+    rgba(245,197,24,0.10),
+    transparent 65%
+  );
+  mix-blend-mode: screen;
+  transition: background 0.18s ease-out;
+}
+[data-theme="light"] .hero__spotlight {
+  background: radial-gradient(
+    420px circle at var(--spot-x, 50%) var(--spot-y, 30%),
+    rgba(196,133,10,0.12),
+    transparent 65%
+  );
+  mix-blend-mode: multiply;
 }
 
 @keyframes floatY { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-22px); } }
@@ -124,17 +145,36 @@
   font-family: 'Bebas Neue', sans-serif;
   line-height: 0.88;
   letter-spacing: 0.005em;
-  opacity: 0;
   font-size: clamp(4rem, 10vw, 9rem);
   color: var(--text-primary);
+  display: block;
 }
 .hero__title-line em {
   font-family: 'Playfair Display', serif;
   font-style: italic;
 }
-.hero__title-line--1 { animation: fadeUp 0.7s 0.15s ease forwards; }
-.hero__title-line--2 { animation: fadeUp 0.7s 0.27s ease forwards; }
-.hero__title-line--3 { animation: fadeUp 0.7s 0.39s ease forwards; color: var(--text-secondary); }
+.hero__title-line--3 { color: var(--text-secondary); }
+
+/* ── Word-by-word reveal (used on the hero title) ── */
+.word-reveal {
+  display: inline-block;
+}
+.word-reveal__word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  line-height: 0.95;
+}
+.word-reveal__inner {
+  display: inline-block;
+  will-change: transform;
+}
+.word-reveal--grad .word-reveal__inner {
+  background: inherit;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: inherit;
+}
 
 /* Gradient highlight on the middle word */
 .hero__title-grad {
@@ -502,9 +542,80 @@
   .hero__floater,
   .hero__eyebrow-dot,
   .hero__card-kicker-dot,
-  .hero__scroll-cue svg { animation: none !important; }
-  .hero__card { transition: none; }
+  .hero__scroll-cue svg,
+  .word-reveal__inner { animation: none !important; transform: none !important; }
+  .hero__card,
+  .hero__spotlight { transition: none; }
 }
+
+/* ════════════════════════════════════════════════════════
+   Magnetic CTA buttons — pointer drift + sheen sweep
+════════════════════════════════════════════════════════ */
+.magnetic {
+  position: relative;
+  overflow: hidden;
+  transform: translate3d(var(--mag-x, 0), var(--mag-y, 0), 0);
+  transition: transform 0.35s cubic-bezier(.2,.7,.2,1), background 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.magnetic__inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transform: translate3d(calc(var(--mag-x, 0) * 0.4), calc(var(--mag-y, 0) * 0.4), 0);
+  transition: transform 0.45s cubic-bezier(.2,.7,.2,1);
+}
+.magnetic::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.7s cubic-bezier(.2,.7,.2,1);
+  pointer-events: none;
+  opacity: 0.55;
+}
+.magnetic:hover::after { transform: translateX(120%); }
+.btn-outline.magnetic::after,
+.btn-outline-gold.magnetic::after {
+  background: linear-gradient(120deg, transparent 30%, rgba(245,197,24,0.18) 50%, transparent 70%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .magnetic, .magnetic__inner { transform: none !important; transition: none !important; }
+  .magnetic::after { display: none; }
+}
+
+/* ════════════════════════════════════════════════════════
+   Tech marquee strip
+════════════════════════════════════════════════════════ */
+.tech-strip {
+  background: var(--bg-primary);
+  border-top: 1px solid var(--surface-border);
+  border-bottom: 1px solid var(--surface-border);
+  padding: 1.4rem 0;
+  position: relative;
+}
+.tech-strip::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(245,197,24,0.04) 50%, transparent 100%);
+  pointer-events: none;
+}
+.tech-strip__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 1rem;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid var(--surface-border);
+  border-radius: 100px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.tech-strip__pill svg { color: var(--gold); flex-shrink: 0; }
+[data-theme="light"] .tech-strip__pill { background: rgba(255,255,255,0.7); }
 
 /* ══════ ABOUT STRIP ══════ */
 .about-strip {
@@ -642,8 +753,34 @@
   position: relative;
   overflow: hidden;
   transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
-  animation: fadeUp 0.6s ease both;
+  isolation: isolate;
 }
+
+/* Conic gold halo that rotates on hover — clipped inside the card */
+.offering-card__glow {
+  position: absolute;
+  inset: -1px;
+  border-radius: 18px;
+  padding: 1px;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(245,197,24,0.55) 60deg, transparent 140deg, transparent 360deg);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+.offering-card:hover .offering-card__glow {
+  opacity: 1;
+  animation: cardConicSpin 4.5s linear infinite;
+}
+@keyframes cardConicSpin {
+  to { transform: rotate(360deg); }
+}
+.offering-card > * { position: relative; z-index: 1; }
 .offering-card::before {
   content: '';
   position: absolute;
@@ -739,18 +876,34 @@
   gap: 0.7rem;
   position: relative;
   overflow: hidden;
-  transition: all 0.3s ease;
-  animation: fadeUp 0.6s ease both;
+  transform-style: preserve-3d;
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.28s cubic-bezier(.2,.7,.2,1), border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.home-ev-card--past { opacity: 0.7; }
+.home-ev-card--past { opacity: 0.78; }
 .home-ev-card--past:hover { opacity: 1; }
 
 .home-ev-card:hover {
   border-color: var(--gold-border);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.22), 0 0 0 1px var(--gold-border);
 }
+
+/* Pointer-tracked spotlight on the card */
+.home-ev-card__spot {
+  position: absolute; inset: 0;
+  background: radial-gradient(
+    220px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    rgba(245,197,24,0.10),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+.home-ev-card:hover .home-ev-card__spot { opacity: 1; }
+.home-ev-card > *:not(.home-ev-card__spot):not(.home-ev-card__glow) { position: relative; z-index: 1; }
 
 .home-ev-card__top {
   display: flex;
@@ -838,6 +991,31 @@
   pointer-events: none;
 }
 .home-ev-card:hover .home-ev-card__glow { opacity: 1; }
+
+/* ══════ CTA banner sheen ══════ */
+.cta-banner { position: relative; }
+.cta-banner__sheen {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 90% at 80% 50%, rgba(245,197,24,0.10), transparent 60%),
+    linear-gradient(115deg, transparent 30%, rgba(245,197,24,0.06) 50%, transparent 70%);
+  background-size: 100% 100%, 200% 100%;
+  animation: ctaSheen 12s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+.cta-banner__inner { z-index: 1; }
+@keyframes ctaSheen {
+  0%   { background-position: 0% 0%, 0% 0%; }
+  100% { background-position: 0% 0%, 200% 0%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .offering-card:hover .offering-card__glow,
+  .cta-banner__sheen { animation: none !important; }
+  .home-ev-card { transform: none !important; transition: none !important; }
+}
 
 /* ══════ RESPONSIVE ══════ */
 @media (max-width: 1100px) {

@@ -1,12 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
+  motion, useScroll, useTransform, useReducedMotion,
+} from 'framer-motion';
+import {
   ArrowRight, ArrowUpRight, ChevronDown, Users, Calendar, Award, Globe,
-  Cpu, Zap, BookOpen, MapPin, Sparkles,
+  Cpu, Zap, BookOpen, MapPin, Sparkles, Rocket, Code2, Cloud, Brain,
+  Layers, Shield, Database, GitBranch, Terminal, Wifi,
 } from 'lucide-react';
 import { eventsAPI } from '../services/api';
 import WaveBackground from '../components/WaveBackground';
 import HighlightsCarousel, { Highlight } from '../components/HighlightsCarousel';
+import Reveal from '../components/Reveal';
+import Counter from '../components/Counter';
+import Marquee from '../components/Marquee';
+import { useMagnetic } from '../hooks/useMagnetic';
 import './Home.css';
 
 interface Event {
@@ -22,14 +30,27 @@ interface Event {
   current_participants?: number | null;
 }
 
-const STATS = [
-  { icon: Users,    value: '500+', label: 'Active Members' },
-  { icon: Calendar, value: '40+',  label: 'Events Hosted' },
-  { icon: Award,    value: '15+',  label: 'Awards Won' },
-  { icon: Globe,    value: '5+',   label: 'Years Active' },
+const STATS: { icon: typeof Users; value: number; suffix: string; label: string }[] = [
+  { icon: Users,    value: 500, suffix: '+', label: 'Active Members' },
+  { icon: Calendar, value: 40,  suffix: '+', label: 'Events Hosted' },
+  { icon: Award,    value: 15,  suffix: '+', label: 'Awards Won' },
+  { icon: Globe,    value: 5,   suffix: '+', label: 'Years Active' },
 ];
 
 const ORBIT_CHIPS = ['AI / ML', 'Cloud', 'Hackathons', 'Research', 'Web3', 'Embedded'];
+
+const TECH_STRIP = [
+  { Icon: Brain,     label: 'AI / ML' },
+  { Icon: Cloud,     label: 'Cloud Native' },
+  { Icon: Code2,     label: 'Full Stack' },
+  { Icon: Shield,    label: 'Cybersecurity' },
+  { Icon: Database,  label: 'Data Engineering' },
+  { Icon: GitBranch, label: 'Open Source' },
+  { Icon: Layers,    label: 'Web3' },
+  { Icon: Terminal,  label: 'DevOps' },
+  { Icon: Wifi,      label: 'IoT & Embedded' },
+  { Icon: Rocket,    label: 'Hackathons' },
+];
 
 const HIGHLIGHTS: Highlight[] = [
   {
@@ -105,6 +126,7 @@ export default function Home() {
   const [events, setEvents] = useState<Event[]>(SAMPLE_EVENTS);
   const heroRef = useRef<HTMLElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
 
   useEffect(() => {
     eventsAPI.getAll({ featured: 'true', limit: '3' })
@@ -112,12 +134,10 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  // Pointer-tracked tilt on the hero card (disabled when prefers-reduced-motion).
+  /* Pointer-tracked tilt on the hero card. */
   useEffect(() => {
     const card = cardRef.current;
-    if (!card) return;
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (mq.matches) return;
+    if (!card || reduced) return;
     const onMove = (e: PointerEvent) => {
       const r = card.getBoundingClientRect();
       const x = (e.clientX - r.left) / r.width - 0.5;
@@ -135,7 +155,30 @@ export default function Home() {
       card.removeEventListener('pointermove', onMove);
       card.removeEventListener('pointerleave', onLeave);
     };
-  }, []);
+  }, [reduced]);
+
+  /* Pointer spotlight overlay — soft gold radial that tracks the cursor. */
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero || reduced) return;
+    const onMove = (e: PointerEvent) => {
+      const r = hero.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / r.width) * 100;
+      const y = ((e.clientY - r.top) / r.height) * 100;
+      hero.style.setProperty('--spot-x', `${x.toFixed(1)}%`);
+      hero.style.setProperty('--spot-y', `${y.toFixed(1)}%`);
+    };
+    hero.addEventListener('pointermove', onMove);
+    return () => hero.removeEventListener('pointermove', onMove);
+  }, [reduced]);
+
+  /* Scroll-linked parallax on hero glows. */
+  const { scrollY } = useScroll();
+  const glowY1 = useTransform(scrollY, [0, 800], [0, 120]);
+  const glowY2 = useTransform(scrollY, [0, 800], [0, -90]);
+  const glowY3 = useTransform(scrollY, [0, 800], [0, 60]);
+  const heroFade = useTransform(scrollY, [0, 600], [1, 0.25]);
+  const heroLift = useTransform(scrollY, [0, 600], [0, -60]);
 
   const nextEvent = useMemo(
     () => events.find((e) => e.status === 'upcoming') ?? events[0],
@@ -150,11 +193,13 @@ export default function Home() {
         <WaveBackground variant="hero" />
         <div className="hero__grid-texture" />
         <div className="hero__noise" aria-hidden="true" />
-        <div className="hero__glow hero__glow--1" />
-        <div className="hero__glow hero__glow--2" />
-        <div className="hero__glow hero__glow--3" />
+        <div className="hero__spotlight" aria-hidden="true" />
 
-        <div className="container hero__body">
+        <motion.div className="hero__glow hero__glow--1" style={{ y: glowY1 }} />
+        <motion.div className="hero__glow hero__glow--2" style={{ y: glowY2 }} />
+        <motion.div className="hero__glow hero__glow--3" style={{ y: glowY3 }} />
+
+        <motion.div className="container hero__body" style={{ y: heroLift, opacity: heroFade }}>
           <div className="hero__grid">
             {/* ── LEFT: typography ── */}
             <div className="hero__left">
@@ -168,11 +213,13 @@ export default function Home() {
               </div>
 
               <h1 className="hero__title">
-                <span className="hero__title-line hero__title-line--1">Build.</span>
+                <WordReveal text="Build." className="hero__title-line hero__title-line--1" baseDelay={0.15} />
                 <span className="hero__title-line hero__title-line--2">
-                  <span className="hero__title-grad">Inno<em>vate</em></span>.
+                  <span className="hero__title-grad">
+                    <WordReveal text="Innovate." baseDelay={0.32} inline gradient />
+                  </span>
                 </span>
-                <span className="hero__title-line hero__title-line--3">Lead.</span>
+                <WordReveal text="Lead." className="hero__title-line hero__title-line--3" baseDelay={0.5} />
               </h1>
 
               <p className="hero__sub">
@@ -181,12 +228,12 @@ export default function Home() {
               </p>
 
               <div className="hero__cta">
-                <Link to="/events" className="btn btn-primary hero__cta-main">
+                <MagneticLink to="/events" className="btn btn-primary hero__cta-main">
                   Explore Events <ArrowRight size={17} />
-                </Link>
-                <Link to="/membership" className="btn btn-outline hero__cta-sec">
+                </MagneticLink>
+                <MagneticLink to="/membership" className="btn btn-outline hero__cta-sec">
                   Become a Member
-                </Link>
+                </MagneticLink>
               </div>
 
               <p className="hero__trust">
@@ -250,17 +297,19 @@ export default function Home() {
 
           {/* ── Metric strip ── */}
           <div className="hero__metrics">
-            {STATS.map(({ icon: Icon, value, label }) => (
+            {STATS.map(({ icon: Icon, value, suffix, label }) => (
               <div className="hero__metric" key={label}>
                 <Icon size={16} className="hero__metric-icon" />
                 <div className="hero__metric-text">
-                  <span className="hero__metric-value">{value}</span>
+                  <span className="hero__metric-value">
+                    <Counter to={value} suffix={suffix} duration={1.8} />
+                  </span>
                   <span className="hero__metric-label">{label}</span>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         <a href="#about" className="hero__scroll-cue" aria-label="Scroll to about">
           <span className="hero__scroll-cue-text">Scroll</span>
@@ -268,12 +317,24 @@ export default function Home() {
         </a>
       </section>
 
+      {/* ══════════════ TECH MARQUEE ══════════════ */}
+      <section className="tech-strip" aria-label="Domains we explore">
+        <Marquee speed={45}>
+          {TECH_STRIP.map(({ Icon, label }) => (
+            <span className="tech-strip__pill" key={label}>
+              <Icon size={15} />
+              {label}
+            </span>
+          ))}
+        </Marquee>
+      </section>
+
       {/* ══════════════ ABOUT STRIP ══════════════ */}
       <section id="about" className="about-strip section-pad">
         <WaveBackground variant="section" />
         <div className="container about-strip__inner">
           {/* Left text */}
-          <div className="about-strip__text">
+          <Reveal className="about-strip__text" direction="up">
             <span className="section-eyebrow">Who we are</span>
             <h2 className="section-title">
               Driven by curiosity.<br />
@@ -291,12 +352,11 @@ export default function Home() {
             <Link to="/about" className="btn btn-outline" style={{ marginTop: '2rem' }}>
               Our story <ArrowRight size={15} />
             </Link>
-          </div>
+          </Reveal>
 
           {/* Right — glass card like Anubhava "about box" */}
-          <div className="about-strip__card-wrap">
+          <Reveal className="about-strip__card-wrap" direction="left" delay={0.15}>
             <div className="about-glass-card">
-              {/* Top accent bar */}
               <div className="about-glass-card__bar" />
 
               <div className="about-glass-card__head">
@@ -318,17 +378,16 @@ export default function Home() {
                 ))}
               </div>
 
-              {/* Hover shimmer line — Anubhava style */}
               <div className="about-glass-card__shimmer" />
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* ══════════════ WHAT WE OFFER ══════════════ */}
       <section className="offerings section-pad">
         <div className="container">
-          <div className="section-header">
+          <Reveal className="section-header" direction="up">
             <span className="section-eyebrow">What we offer</span>
             <h2 className="section-title">
               Everything you need to grow<br />
@@ -337,19 +396,21 @@ export default function Home() {
             <p className="section-body">
               Workshops, hackathons, research, community — one chapter, one trajectory.
             </p>
-          </div>
+          </Reveal>
 
           <div className="offerings__grid">
             {OFFERINGS.map(({ icon: Icon, title, desc }, i) => (
-              <div className="offering-card" key={title} style={{ animationDelay: `${i * 0.08}s` }}>
-                <div className="offering-card__icon">
-                  <Icon size={22} />
+              <Reveal key={title} direction="up" delay={i * 0.08}>
+                <div className="offering-card">
+                  <div className="offering-card__glow" aria-hidden="true" />
+                  <div className="offering-card__icon">
+                    <Icon size={22} />
+                  </div>
+                  <h3 className="offering-card__title">{title}</h3>
+                  <p className="offering-card__desc">{desc}</p>
+                  <div className="offering-card__line" />
                 </div>
-                <h3 className="offering-card__title">{title}</h3>
-                <p className="offering-card__desc">{desc}</p>
-                {/* Bottom gradient line on hover — Anubhava style */}
-                <div className="offering-card__line" />
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -359,7 +420,7 @@ export default function Home() {
       <section className="home-highlights section-pad">
         <WaveBackground variant="subtle" />
         <div className="container" style={{ position: 'relative', zIndex: 1 }}>
-          <div className="section-header--flex">
+          <Reveal className="section-header--flex" direction="up">
             <div>
               <span className="section-eyebrow">Recent highlights</span>
               <h2 className="section-title">
@@ -369,8 +430,10 @@ export default function Home() {
             <Link to="/gallery" className="btn btn-outline btn--sm">
               Open gallery <ArrowRight size={14} />
             </Link>
-          </div>
-          <HighlightsCarousel items={HIGHLIGHTS} />
+          </Reveal>
+          <Reveal direction="up" delay={0.1}>
+            <HighlightsCarousel items={HIGHLIGHTS} />
+          </Reveal>
         </div>
       </section>
 
@@ -378,7 +441,7 @@ export default function Home() {
       <section className="home-events section-pad">
         <WaveBackground variant="section" />
         <div className="container">
-          <div className="section-header--flex">
+          <Reveal className="section-header--flex" direction="up">
             <div>
               <span className="section-eyebrow">What's happening</span>
               <h2 className="section-title">Featured events</h2>
@@ -386,11 +449,13 @@ export default function Home() {
             <Link to="/events" className="btn btn-outline btn--sm">
               View all <ArrowRight size={14} />
             </Link>
-          </div>
+          </Reveal>
 
           <div className="home-events__grid">
             {events.map((ev, i) => (
-              <EventCard key={ev.id} event={ev} index={i} />
+              <Reveal key={ev.id} direction="up" delay={i * 0.1}>
+                <EventCard event={ev} />
+              </Reveal>
             ))}
           </div>
         </div>
@@ -398,8 +463,9 @@ export default function Home() {
 
       {/* ══════════════ CTA ══════════════ */}
       <section className="cta-banner">
+        <div className="cta-banner__sheen" aria-hidden="true" />
         <div className="container cta-banner__inner">
-          <div>
+          <Reveal direction="up">
             <h2 className="cta-banner__title">
               Build what's next.<br />
               <em>With people who care.</em>
@@ -407,18 +473,69 @@ export default function Home() {
             <p className="cta-banner__sub">
               Membership opens doors to events, mentorship, and a global IEEE network.
             </p>
-          </div>
-          <div className="cta-banner__actions">
-            <Link to="/membership" className="btn btn-primary">
+          </Reveal>
+          <Reveal className="cta-banner__actions" direction="up" delay={0.1}>
+            <MagneticLink to="/membership" className="btn btn-primary">
               Apply for membership <ArrowRight size={17} />
-            </Link>
-            <Link to="/contact" className="btn btn-outline-gold">
+            </MagneticLink>
+            <MagneticLink to="/contact" className="btn btn-outline-gold">
               Talk to us
-            </Link>
-          </div>
+            </MagneticLink>
+          </Reveal>
         </div>
       </section>
     </div>
+  );
+}
+
+/* ─── helpers ─── */
+
+function WordReveal({
+  text,
+  className,
+  baseDelay = 0,
+  inline = false,
+  gradient = false,
+}: { text: string; className?: string; baseDelay?: number; inline?: boolean; gradient?: boolean }) {
+  const reduced = useReducedMotion();
+  const Wrapper = (inline ? 'span' : 'span') as 'span';
+  const words = text.split(' ');
+
+  if (reduced) {
+    return <Wrapper className={className}>{text}</Wrapper>;
+  }
+
+  return (
+    <Wrapper className={`${className ?? ''} word-reveal${gradient ? ' word-reveal--grad' : ''}`}>
+      {words.map((w, i) => (
+        <span key={`${w}-${i}`} className="word-reveal__word">
+          <motion.span
+            className="word-reveal__inner"
+            initial={{ y: '100%', opacity: 0 }}
+            animate={{ y: '0%', opacity: 1 }}
+            transition={{
+              duration: 0.85,
+              delay: baseDelay + i * 0.08,
+              ease: [0.2, 0.7, 0.2, 1],
+            }}
+          >
+            {w}
+          </motion.span>
+          {i < words.length - 1 ? ' ' : ''}
+        </span>
+      ))}
+    </Wrapper>
+  );
+}
+
+function MagneticLink({
+  to, className, children,
+}: { to: string; className?: string; children: React.ReactNode }) {
+  const ref = useMagnetic<HTMLAnchorElement>(10);
+  return (
+    <Link ref={ref} to={to} className={`${className ?? ''} magnetic`}>
+      <span className="magnetic__inner">{children}</span>
+    </Link>
   );
 }
 
@@ -469,13 +586,43 @@ function NextEventBlock({ event }: { event: Event }) {
   );
 }
 
-function EventCard({ event, index }: { event: Event; index: number }) {
+function EventCard({ event }: { event: Event }) {
   const d = new Date(event.date);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  /* Pointer-tracked tilt + spotlight for each event card. */
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+    const onMove = (e: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / r.width);
+      const y = ((e.clientY - r.top) / r.height);
+      el.style.setProperty('--rx', `${((0.5 - y) * 6).toFixed(2)}deg`);
+      el.style.setProperty('--ry', `${((x - 0.5) * 8).toFixed(2)}deg`);
+      el.style.setProperty('--spot-x', `${(x * 100).toFixed(1)}%`);
+      el.style.setProperty('--spot-y', `${(y * 100).toFixed(1)}%`);
+    };
+    const onLeave = () => {
+      el.style.setProperty('--rx', '0deg');
+      el.style.setProperty('--ry', '0deg');
+    };
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerleave', onLeave);
+    return () => {
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerleave', onLeave);
+    };
+  }, []);
+
   return (
     <div
+      ref={cardRef}
       className={`home-ev-card ${event.status === 'completed' ? 'home-ev-card--past' : ''}`}
-      style={{ animationDelay: `${index * 0.1}s` }}
     >
+      <div className="home-ev-card__spot" aria-hidden="true" />
       <div className="home-ev-card__top">
         <span className="home-ev-card__type">{event.event_type}</span>
         <span className={`home-ev-card__status status--${event.status}`}>{event.status}</span>
@@ -506,7 +653,6 @@ function EventCard({ event, index }: { event: Event; index: number }) {
         </Link>
       </div>
 
-      {/* Hover accent line */}
       <div className="home-ev-card__glow" />
     </div>
   );
