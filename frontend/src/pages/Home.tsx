@@ -31,10 +31,10 @@ const STATS = [
 const ORBIT_CHIPS = ['AI / ML', 'Cloud', 'Hackathons', 'Research', 'Web3', 'Embedded'];
 
 const OFFERINGS = [
-  { icon: Cpu,      title: 'Technical Workshops',  desc: 'Hands-on sessions on emerging tech — AI, cloud, web, embedded systems and more.' },
-  { icon: Zap,      title: 'Hackathons & Contests', desc: '24-hour hackathons and coding competitions to push your limits and build real things.' },
-  { icon: BookOpen, title: 'Seminars & Talks',      desc: 'Industry speakers, alumni panels, and research presentations that broaden your horizon.' },
-  { icon: Users,    title: 'Networking & Community', desc: 'A tight-knit community of engineers, designers, and leaders who grow together.' },
+  { icon: Cpu,      title: 'Technical workshops',   desc: 'Hands-on sessions in AI, cloud, full-stack, and embedded systems — taught by peers and practitioners.' },
+  { icon: Zap,      title: 'Hackathons & contests', desc: 'Twenty-four-hour sprints where teams ship real products. Prizes, mentors, and bragging rights included.' },
+  { icon: BookOpen, title: 'Seminars & research',   desc: 'Talks from industry engineers, alumni in top labs, and student research showcases.' },
+  { icon: Users,    title: 'Community & mentorship', desc: 'A tight-knit network of seniors, peers, and mentors who help you ship, interview, and grow.' },
 ];
 
 const SAMPLE_EVENTS: Event[] = [
@@ -216,22 +216,22 @@ export default function Home() {
         <div className="container about-strip__inner">
           {/* Left text */}
           <div className="about-strip__text">
-            <span className="section-eyebrow">Who We Are</span>
+            <span className="section-eyebrow">Who we are</span>
             <h2 className="section-title">
               Driven by curiosity.<br />
               <em>Shaped by code.</em>
             </h2>
             <p className="section-body">
-              The IEEE Computer Society student chapter is the premier technical community at our college.
-              From workshops to hackathons, from research talks to industry visits — we create
-              experiences that define careers.
+              The IEEE Computer Society chapter at MITS is where students go beyond the syllabus —
+              shipping projects, running events, and building the technical foundation that defines
+              their careers.
             </p>
             <p className="section-body" style={{ marginTop: '0.85rem' }}>
-              Officially affiliated with IEEE — the world's largest technical professional organization
+              Affiliated with IEEE — the world's largest technical professional society,
               with 400,000+ members across 160+ countries.
             </p>
             <Link to="/about" className="btn btn-outline" style={{ marginTop: '2rem' }}>
-              Our Story <ArrowRight size={15} />
+              Our story <ArrowRight size={15} />
             </Link>
           </div>
 
@@ -271,10 +271,13 @@ export default function Home() {
       <section className="offerings section-pad">
         <div className="container">
           <div className="section-header">
-            <span className="section-eyebrow">What We Offer</span>
-            <h2 className="section-title">Why Join IEEE CS?</h2>
+            <span className="section-eyebrow">What we offer</span>
+            <h2 className="section-title">
+              Everything you need to grow<br />
+              <em>as an engineer.</em>
+            </h2>
             <p className="section-body">
-              Everything you need to grow as an engineer — under one community.
+              Workshops, hackathons, research, community — one chapter, one trajectory.
             </p>
           </div>
 
@@ -300,11 +303,11 @@ export default function Home() {
         <div className="container">
           <div className="section-header--flex">
             <div>
-              <span className="section-eyebrow">What's Happening</span>
-              <h2 className="section-title">Featured Events</h2>
+              <span className="section-eyebrow">What's happening</span>
+              <h2 className="section-title">Featured events</h2>
             </div>
             <Link to="/events" className="btn btn-outline btn--sm">
-              All Events <ArrowRight size={14} />
+              View all <ArrowRight size={14} />
             </Link>
           </div>
 
@@ -321,19 +324,19 @@ export default function Home() {
         <div className="container cta-banner__inner">
           <div>
             <h2 className="cta-banner__title">
-              Ready to be part of<br />
-              <em>something bigger?</em>
+              Build what's next.<br />
+              <em>With people who care.</em>
             </h2>
             <p className="cta-banner__sub">
-              Join hundreds of students building the future of technology.
+              Membership opens doors to events, mentorship, and a global IEEE network.
             </p>
           </div>
           <div className="cta-banner__actions">
             <Link to="/membership" className="btn btn-primary">
-              Apply for Membership <ArrowRight size={17} />
+              Apply for membership <ArrowRight size={17} />
             </Link>
             <Link to="/contact" className="btn btn-outline-gold">
-              Get in Touch
+              Talk to us
             </Link>
           </div>
         </div>
