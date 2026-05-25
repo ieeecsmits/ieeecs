@@ -23,7 +23,7 @@ export default function EventRegister() {
       .then(r => setEvent(r.data.event))
       .catch(() => navigate('/events'))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, navigate]);
 
   const handle = (e: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -38,7 +38,8 @@ export default function EventRegister() {
       await eventsAPI.register(id, form);
       setSuccess(true);
       toast.success('Registration successful! 🎉');
-    } catch (err: any) {
+    } catch (err: unknown) {
+      // @ts-expect-error err is unknown
       toast.error(err?.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setSubmitting(false);

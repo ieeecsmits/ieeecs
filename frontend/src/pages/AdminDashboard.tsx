@@ -10,17 +10,19 @@ export default function AdminDashboard() {
   const { user, isAdmin, logout } = useAuth();
   const [stats, setStats] = useState({ events:0, memberships:0, contacts:0 });
 
+  useEffect(() => {
+    if (user && isAdmin) {
+      Promise.allSettled([eventsAPI.getAll(), membershipAPI.getAll(), contactAPI.getAll()])
+        .then(([ev, mem, con]) => setStats({
+          events:       ev.status==='fulfilled'  ? ev.value.data.total||0      : 0,
+          memberships:  mem.status==='fulfilled' ? mem.value.data.memberships?.length||0 : 0,
+          contacts:     con.status==='fulfilled' ? con.value.data.contacts?.length||0 : 0,
+        }));
+    }
+  }, [user, isAdmin]);
+
   if (!user)    return <Navigate to="/admin/login" />;
   if (!isAdmin) return <Navigate to="/" />;
-
-  useEffect(() => {
-    Promise.allSettled([eventsAPI.getAll(), membershipAPI.getAll(), contactAPI.getAll()])
-      .then(([ev, mem, con]) => setStats({
-        events:       ev.status==='fulfilled'  ? ev.value.data.total||0      : 0,
-        memberships:  mem.status==='fulfilled' ? mem.value.data.memberships?.length||0 : 0,
-        contacts:     con.status==='fulfilled' ? con.value.data.contacts?.length||0 : 0,
-      }));
-  }, []);
 
   const STAT_CARDS = [
     { icon:Calendar, label:'Total Events',           value:stats.events,       color:'#F5C518' },

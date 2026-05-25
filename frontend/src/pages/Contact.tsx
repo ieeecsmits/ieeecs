@@ -20,7 +20,8 @@ export default function Contact() {
       await contactAPI.send(form);
       setSuccess(true);
       toast.success('Message sent! We\'ll get back to you soon.');
-    } catch (err: any) {
+    } catch (err: unknown) {
+      // @ts-expect-error err is unknown
       toast.error(err?.response?.data?.message || 'Failed. Please try again.');
     } finally {
       setSubmitting(false);

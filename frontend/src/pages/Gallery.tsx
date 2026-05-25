@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
 import { galleryAPI } from '../services/api';
 import WaveBackground from '../components/WaveBackground';
@@ -33,14 +33,14 @@ function Carousel3D({ images }: { images: GalleryImage[] }) {
   const radius = Math.round((CARD_WIDTH * GAP_MULTIPLIER) / (2 * Math.sin(Math.PI / total)));
 
   const prev = () => setActive(a => (a - 1 + total) % total);
-  const next = () => setActive(a => (a + 1) % total);
+  const next = useCallback(() => setActive(a => (a + 1) % total), [total]);
 
   // Auto-rotate
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   useEffect(() => {
     timerRef.current = setInterval(next, 3200);
     return () => clearInterval(timerRef.current);
-  }, [total]);
+  }, [total, next]);
 
   return (
     <div className="c3d">

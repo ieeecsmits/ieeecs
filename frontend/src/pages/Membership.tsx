@@ -30,7 +30,8 @@ export default function Membership() {
       await membershipAPI.apply(form);
       setSuccess(true);
       toast.success('Application submitted! ✅');
-    } catch (err: any) {
+    } catch (err: unknown) {
+      // @ts-expect-error err is unknown
       toast.error(err?.response?.data?.message || 'Submission failed. Try again.');
     } finally {
       setSubmitting(false);

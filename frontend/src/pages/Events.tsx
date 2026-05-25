@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, MapPin, Users, Search, ArrowRight, Clock, Filter } from 'lucide-react';
+import { MapPin, Users, Search, ArrowRight, Clock, Filter } from 'lucide-react';
 import { eventsAPI } from '../services/api';
 import WaveBackground from '../components/WaveBackground';
 import './Events.css';

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Target, Eye, Heart, Globe, Users, BookOpen, Award } from 'lucide-react';
+import { ArrowRight, Target, Eye, Heart } from 'lucide-react';
 import WaveBackground from '../components/WaveBackground';
 import './About.css';
 

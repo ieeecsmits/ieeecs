@@ -13,7 +13,7 @@ const LEADERSHIP = [
 
 const DIVISIONS = [
   { name:'Technical Development', color:'#F5C518', members:[
-    { name:'Amit Vishwakarma', dept:'IT-IoT',  year:'II' ,photo:'d:\New folder\amit_vishwakarma.png'},
+    { name:'Amit Vishwakarma', dept:'IT-IoT',  year:'II' ,photo:'d:\\New folder\\amit_vishwakarma.png'},
     { name:'Amit Manmode',     dept:'CSE',  year:'II' },
     { name:'Aditya Singh',     dept:'AI-DS', year:'II', photo:'https://ieee-cs-mits-du.vercel.app/images-office-bearers/aditya-singh.jpg' },
     { name:'Muhammad Raihaan Musharraf', dept:'AI', year:'III' },
@@ -150,7 +150,7 @@ export default function OfficeBearers() {
               <div className="ob-mem-grid">
                 {div.members.map(m=>(
                   <div key={m.name} className="ob-mem-card">
-                    <Avatar name={m.name} photo={(m as any).photo||null} size="sm" />
+                    <Avatar name={m.name} photo={(m as { photo?: string }).photo||null} size="sm" />
                     <div className="ob-mem-card__info">
                       <p className="ob-mem-card__name">{m.name}</p>
                       <p className="ob-mem-card__meta">{m.dept} · {m.year} Year</p>
