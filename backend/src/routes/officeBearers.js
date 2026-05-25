@@ -1,41 +1,14 @@
 const express = require('express');
+
 const pool = require('../db/connection');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
+const asyncHandler = require('../middleware/asyncHandler');
+const validate = require('../middleware/validate');
+const schemas = require('../validators/schemas');
+const buildUpdate = require('../utils/buildUpdate');
+const HttpError = require('../utils/HttpError');
 
 const router = express.Router();
-
-// GET /api/office-bearers
-router.get('/', async (req, res) => {
-  try {
-    const { tenure_year, active } = req.query;
-    let query = 'SELECT * FROM office_bearers WHERE 1=1';
-    const params = [];
-    let idx = 1;
-
-    if (active !== 'false') { query += ` AND is_active = true`; }
-    if (tenure_year) { query += ` AND tenure_year = $${idx++}`; params.push(tenure_year); }
-
-    query += ' ORDER BY order_index ASC';
-    const result = await pool.query(query, params);
-    res.json({ success: true, bearers: result.rows });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error', error: err.message });
-  }
-});
-
-// POST /api/office-bearers (admin only)
-router.post('/', authMiddleware, adminOnly, async (req, res) => {
-  try {
-    const { name, position, department, year, email, linkedin_url, github_url, image_url, bio, order_index, tenure_year } = req.body;
-    const result = await pool.query(`
-      INSERT INTO office_bearers (name, position, department, year, email, linkedin_url, github_url, image_url, bio, order_index, tenure_year)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *
-    `, [name, position, department, year, email, linkedin_url, github_url, image_url, bio, order_index || 0, tenure_year]);
-    res.status(201).json({ success: true, bearer: result.rows[0] });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error', error: err.message });
-  }
-});
 
 const BEARER_UPDATABLE_COLUMNS = new Set([
   'name', 'position', 'department', 'year', 'email',
@@ -43,34 +16,72 @@ const BEARER_UPDATABLE_COLUMNS = new Set([
   'order_index', 'is_active', 'tenure_year',
 ]);
 
-// PUT /api/office-bearers/:id (admin only)
-router.put('/:id', authMiddleware, adminOnly, async (req, res) => {
-  try {
-    const entries = Object.entries(req.body).filter(([k]) => BEARER_UPDATABLE_COLUMNS.has(k));
-    if (entries.length === 0) {
-      return res.status(400).json({ success: false, message: 'No updatable fields provided' });
-    }
-    const setClause = entries.map(([k], i) => `${k} = $${i + 2}`).join(', ');
-    const result = await pool.query(
-      `UPDATE office_bearers SET ${setClause} WHERE id = $1 RETURNING *`,
-      [req.params.id, ...entries.map(([, v]) => v)]
+router.get(
+  '/',
+  asyncHandler(async (req, res) => {
+    const { tenure_year, active } = req.query;
+    const clauses = [];
+    const params = [];
+    if (active !== 'false') clauses.push('is_active = true');
+    if (tenure_year) { clauses.push('tenure_year = $1'); params.push(tenure_year); }
+    const whereSql = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+    const { rows } = await pool.query(
+      `SELECT * FROM office_bearers ${whereSql} ORDER BY order_index ASC`,
+      params
     );
-    if (!result.rows[0]) return res.status(404).json({ success: false, message: 'Office bearer not found' });
-    res.json({ success: true, bearer: result.rows[0] });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error', error: err.message });
-  }
-});
+    res.json({ success: true, bearers: rows });
+  })
+);
 
-// DELETE /api/office-bearers/:id (admin only)
-router.delete('/:id', authMiddleware, adminOnly, async (req, res) => {
-  try {
-    await pool.query('DELETE FROM office_bearers WHERE id = $1', [req.params.id]);
+router.post(
+  '/',
+  authMiddleware,
+  adminOnly,
+  schemas.officeBearerCreate,
+  validate,
+  asyncHandler(async (req, res) => {
+    const {
+      name, position, department, year, email,
+      linkedin_url, github_url, image_url, bio, order_index, tenure_year,
+    } = req.body;
+    const { rows } = await pool.query(
+      `INSERT INTO office_bearers
+        (name, position, department, year, email, linkedin_url, github_url, image_url, bio, order_index, tenure_year)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+      [name, position, department, year, email, linkedin_url, github_url, image_url, bio, order_index ?? 0, tenure_year]
+    );
+    res.status(201).json({ success: true, bearer: rows[0] });
+  })
+);
+
+router.put(
+  '/:id',
+  authMiddleware,
+  adminOnly,
+  schemas.uuidParam(),
+  validate,
+  asyncHandler(async (req, res) => {
+    const { setClause, values } = buildUpdate(req.body, BEARER_UPDATABLE_COLUMNS, req.params.id);
+    const { rows } = await pool.query(
+      `UPDATE office_bearers SET ${setClause} WHERE id = $1 RETURNING *`,
+      values
+    );
+    if (!rows[0]) throw new HttpError(404, 'Office bearer not found');
+    res.json({ success: true, bearer: rows[0] });
+  })
+);
+
+router.delete(
+  '/:id',
+  authMiddleware,
+  adminOnly,
+  schemas.uuidParam(),
+  validate,
+  asyncHandler(async (req, res) => {
+    const { rowCount } = await pool.query('DELETE FROM office_bearers WHERE id = $1', [req.params.id]);
+    if (!rowCount) throw new HttpError(404, 'Office bearer not found');
     res.json({ success: true, message: 'Deleted' });
-  } catch (err) {
-    console.error('DELETE /office-bearers/:id error:', err);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
+  })
+);
 
 module.exports = router;

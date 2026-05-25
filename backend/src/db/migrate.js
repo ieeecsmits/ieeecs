@@ -149,8 +149,26 @@ const createTables = async () => {
       );
     `);
 
+    // Indexes for common query patterns
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_users_email                ON users (email);
+      CREATE INDEX IF NOT EXISTS idx_events_date                ON events (date DESC);
+      CREATE INDEX IF NOT EXISTS idx_events_status              ON events (status);
+      CREATE INDEX IF NOT EXISTS idx_events_event_type          ON events (event_type);
+      CREATE INDEX IF NOT EXISTS idx_events_is_featured         ON events (is_featured) WHERE is_featured = true;
+      CREATE INDEX IF NOT EXISTS idx_event_regs_event           ON event_registrations (event_id);
+      CREATE UNIQUE INDEX IF NOT EXISTS uq_event_regs_event_email ON event_registrations (event_id, email);
+      CREATE INDEX IF NOT EXISTS idx_office_bearers_active      ON office_bearers (is_active, order_index);
+      CREATE INDEX IF NOT EXISTS idx_office_bearers_tenure      ON office_bearers (tenure_year);
+      CREATE INDEX IF NOT EXISTS idx_gallery_event              ON gallery (event_id);
+      CREATE INDEX IF NOT EXISTS idx_gallery_category           ON gallery (category);
+      CREATE INDEX IF NOT EXISTS idx_gallery_created_at         ON gallery (created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_memberships_status         ON memberships (status);
+      CREATE INDEX IF NOT EXISTS idx_contacts_is_read           ON contacts (is_read, created_at DESC);
+    `);
+
     await client.query('COMMIT');
-    console.log('✅ All tables created successfully!');
+    console.log('✅ All tables and indexes created successfully!');
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('❌ Migration failed:', err);

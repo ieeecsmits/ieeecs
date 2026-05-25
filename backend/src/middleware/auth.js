@@ -1,24 +1,23 @@
 const jwt = require('jsonwebtoken');
+const env = require('../config/env');
+const HttpError = require('../utils/HttpError');
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = (req, _res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ success: false, message: 'No token provided' });
+    return next(new HttpError(401, 'No token provided'));
   }
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.slice(7);
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    req.user = jwt.verify(token, env.jwtSecret);
     next();
   } catch {
-    return res.status(401).json({ success: false, message: 'Invalid or expired token' });
+    next(new HttpError(401, 'Invalid or expired token'));
   }
 };
 
-const adminOnly = (req, res, next) => {
-  if (req.user?.role !== 'admin') {
-    return res.status(403).json({ success: false, message: 'Admin access required' });
-  }
+const adminOnly = (req, _res, next) => {
+  if (req.user?.role !== 'admin') return next(new HttpError(403, 'Admin access required'));
   next();
 };
 

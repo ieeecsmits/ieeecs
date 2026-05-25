@@ -1,5 +1,19 @@
 const pool = require('./connection');
 const bcrypt = require('bcryptjs');
+const env = require('../config/env');
+
+const ADMIN_NAME = process.env.SEED_ADMIN_NAME || 'IEEE CS Admin';
+const ADMIN_EMAIL = (process.env.SEED_ADMIN_EMAIL || 'admin@ieeecs.ac.in').toLowerCase();
+const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD;
+
+if (!ADMIN_PASSWORD) {
+  console.error('❌ SEED_ADMIN_PASSWORD env var is required to run the seed script.');
+  process.exit(1);
+}
+if (ADMIN_PASSWORD.length < 12) {
+  console.error('❌ SEED_ADMIN_PASSWORD must be at least 12 characters.');
+  process.exit(1);
+}
 
 const seed = async () => {
   const client = await pool.connect();
@@ -7,12 +21,12 @@ const seed = async () => {
     await client.query('BEGIN');
 
     // Admin user
-    const passwordHash = await bcrypt.hash('admin@ieee123', 12);
+    const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, env.bcryptRounds);
     await client.query(`
       INSERT INTO users (name, email, password_hash, role)
       VALUES ($1, $2, $3, $4)
       ON CONFLICT (email) DO NOTHING
-    `, ['IEEE CS Admin', 'admin@ieeecs.ac.in', passwordHash, 'admin']);
+    `, [ADMIN_NAME, ADMIN_EMAIL, passwordHash, 'admin']);
 
     // Sample events
     const events = [

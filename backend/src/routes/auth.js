@@ -1,51 +1,63 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+
 const pool = require('../db/connection');
+const env = require('../config/env');
 const { authMiddleware } = require('../middleware/auth');
+const { authLimiter } = require('../middleware/rateLimits');
+const asyncHandler = require('../middleware/asyncHandler');
+const validate = require('../middleware/validate');
+const schemas = require('../validators/schemas');
+const HttpError = require('../utils/HttpError');
 
 const router = express.Router();
 
-// POST /api/auth/login
-router.post('/login', async (req, res) => {
-  try {
+router.post(
+  '/login',
+  authLimiter,
+  schemas.login,
+  validate,
+  asyncHandler(async (req, res) => {
     const { email, password } = req.body;
-    if (!email || !password)
-      return res.status(400).json({ success: false, message: 'Email and password required' });
 
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    const user = result.rows[0];
-    if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    const { rows } = await pool.query(
+      'SELECT id, name, email, password_hash, role FROM users WHERE email = $1',
+      [email]
+    );
+    const user = rows[0];
+    // Always run bcrypt to mitigate user-enumeration timing.
+    const valid = user
+      ? await bcrypt.compare(password, user.password_hash)
+      : await bcrypt.compare(password, '$2a$12$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvalidinv');
 
-    const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) return res.status(401).json({ success: false, message: 'Invalid credentials' });
-
-    if (!process.env.JWT_SECRET) {
-      console.error('JWT_SECRET is not configured');
-      return res.status(500).json({ success: false, message: 'Server misconfigured' });
-    }
+    if (!user || !valid) throw new HttpError(401, 'Invalid credentials');
 
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role, name: user.name },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      env.jwtSecret,
+      { expiresIn: env.jwtExpiresIn }
     );
 
-    res.json({ success: true, token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error', error: err.message });
-  }
-});
+    res.json({
+      success: true,
+      token,
+      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+    });
+  })
+);
 
-// GET /api/auth/me
-router.get('/me', authMiddleware, async (req, res) => {
-  try {
-    const result = await pool.query('SELECT id, name, email, role, created_at FROM users WHERE id = $1', [req.user.id]);
-    res.json({ success: true, user: result.rows[0] });
-  } catch (err) {
-    console.error('GET /auth/me error:', err);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
+router.get(
+  '/me',
+  authMiddleware,
+  asyncHandler(async (req, res) => {
+    const { rows } = await pool.query(
+      'SELECT id, name, email, role, created_at FROM users WHERE id = $1',
+      [req.user.id]
+    );
+    if (!rows[0]) throw new HttpError(404, 'User not found');
+    res.json({ success: true, user: rows[0] });
+  })
+);
 
 module.exports = router;
