@@ -1,6 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ChevronDown, Users, Calendar, Award, Globe, Cpu, Zap, BookOpen } from 'lucide-react';
+import {
+  ArrowRight, ArrowUpRight, ChevronDown, Users, Calendar, Award, Globe,
+  Cpu, Zap, BookOpen, MapPin, Sparkles,
+} from 'lucide-react';
 import { eventsAPI } from '../services/api';
 import WaveBackground from '../components/WaveBackground';
 import './Home.css';
@@ -14,6 +17,8 @@ interface Event {
   date: string;
   venue: string;
   is_featured: boolean;
+  max_participants?: number | null;
+  current_participants?: number | null;
 }
 
 const STATS = [
@@ -22,6 +27,8 @@ const STATS = [
   { icon: Award,    value: '15+',  label: 'Awards Won' },
   { icon: Globe,    value: '5+',   label: 'Years Active' },
 ];
+
+const ORBIT_CHIPS = ['AI / ML', 'Cloud', 'Hackathons', 'Research', 'Web3', 'Embedded'];
 
 const OFFERINGS = [
   { icon: Cpu,      title: 'Technical Workshops',  desc: 'Hands-on sessions on emerging tech — AI, cloud, web, embedded systems and more.' },
@@ -39,6 +46,7 @@ const SAMPLE_EVENTS: Event[] = [
 export default function Home() {
   const [events, setEvents] = useState<Event[]>(SAMPLE_EVENTS);
   const heroRef = useRef<HTMLElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     eventsAPI.getAll({ featured: 'true', limit: '3' })
@@ -46,77 +54,159 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  // Subtle parallax
+  // Pointer-tracked tilt on the hero card (disabled when prefers-reduced-motion).
   useEffect(() => {
-    const onScroll = () => {
-      if (heroRef.current) {
-        heroRef.current.style.setProperty('--py', `${window.scrollY * 0.35}px`);
-      }
+    const card = cardRef.current;
+    if (!card) return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (mq.matches) return;
+    const onMove = (e: PointerEvent) => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      card.style.setProperty('--rx', `${(-y * 6).toFixed(2)}deg`);
+      card.style.setProperty('--ry', `${(x * 8).toFixed(2)}deg`);
     };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    const onLeave = () => {
+      card.style.setProperty('--rx', '0deg');
+      card.style.setProperty('--ry', '0deg');
+    };
+    card.addEventListener('pointermove', onMove);
+    card.addEventListener('pointerleave', onLeave);
+    return () => {
+      card.removeEventListener('pointermove', onMove);
+      card.removeEventListener('pointerleave', onLeave);
+    };
   }, []);
+
+  const nextEvent = useMemo(
+    () => events.find((e) => e.status === 'upcoming') ?? events[0],
+    [events]
+  );
 
   return (
     <div className="home page-transition">
 
       {/* ══════════════ HERO ══════════════ */}
       <section className="hero" ref={heroRef}>
-        {/* Animated wave layers */}
         <WaveBackground variant="hero" />
-
-        {/* Grid texture overlay */}
         <div className="hero__grid-texture" />
-
-        {/* Glows */}
+        <div className="hero__noise" aria-hidden="true" />
         <div className="hero__glow hero__glow--1" />
         <div className="hero__glow hero__glow--2" />
+        <div className="hero__glow hero__glow--3" />
 
         <div className="container hero__body">
-          {/* Eyebrow */}
-          <div className="hero__eyebrow animate-fade-up">
-            <span className="hero__eyebrow-dot" />
-            <span>IEEE Computer Society — Student Chapter</span>
+          <div className="hero__grid">
+            {/* ── LEFT: typography ── */}
+            <div className="hero__left">
+              <div className="hero__eyebrow">
+                <span className="hero__eyebrow-dot" />
+                <span className="hero__eyebrow-text">
+                  <span className="hero__eyebrow-live">Now active</span>
+                  <span className="hero__eyebrow-sep">·</span>
+                  IEEE Computer Society Chapter
+                </span>
+              </div>
+
+              <h1 className="hero__title">
+                <span className="hero__title-line hero__title-line--1">Build.</span>
+                <span className="hero__title-line hero__title-line--2">
+                  <span className="hero__title-grad">Inno<em>vate</em></span>.
+                </span>
+                <span className="hero__title-line hero__title-line--3">Lead.</span>
+              </h1>
+
+              <p className="hero__sub">
+                A community of computer-science students shipping real projects,
+                running hackathons, and shaping what comes next in tech.
+              </p>
+
+              <div className="hero__cta">
+                <Link to="/events" className="btn btn-primary hero__cta-main">
+                  Explore Events <ArrowRight size={17} />
+                </Link>
+                <Link to="/membership" className="btn btn-outline hero__cta-sec">
+                  Become a Member
+                </Link>
+              </div>
+
+              <p className="hero__trust">
+                <Sparkles size={13} />
+                Affiliated with <strong>IEEE</strong> — 400,000+ members across 160+ countries.
+              </p>
+            </div>
+
+            {/* ── RIGHT: glass next-event card + orbiting chips ── */}
+            <div className="hero__right">
+              <div className="hero__orbit" aria-hidden="true">
+                {ORBIT_CHIPS.map((label, i) => (
+                  <span
+                    key={label}
+                    className="hero__orbit-chip"
+                    style={{ ['--i' as never]: i, ['--n' as never]: ORBIT_CHIPS.length }}
+                  >
+                    {label}
+                  </span>
+                ))}
+              </div>
+
+              <div className="hero__card" ref={cardRef}>
+                <div className="hero__card-bar" />
+
+                <div className="hero__card-head">
+                  <div className="hero__card-badge">
+                    <span>IEEE</span>
+                    <span>CS</span>
+                  </div>
+                  <div className="hero__card-meta">
+                    <span className="hero__card-kicker">
+                      <span className="hero__card-kicker-dot" />
+                      Next up
+                    </span>
+                    <span className="hero__card-tenure">Tenure 2025 — 26</span>
+                  </div>
+                </div>
+
+                {nextEvent ? <NextEventBlock event={nextEvent} /> : null}
+
+                <div className="hero__card-foot">
+                  <div className="hero__card-tags">
+                    <span className="tag">Workshops</span>
+                    <span className="tag">Hackathons</span>
+                    <span className="tag">Research</span>
+                  </div>
+                </div>
+
+                <div className="hero__card-shimmer" />
+              </div>
+
+              <div className="hero__floater hero__floater--top">
+                <Sparkles size={12} /> Featured chapter
+              </div>
+              <div className="hero__floater hero__floater--bottom">
+                <Users size={12} /> 500+ members
+              </div>
+            </div>
           </div>
 
-          {/* Main title — Anubhava style: big Bebas with italic serif mix */}
-          <h1 className="hero__title">
-            <span className="hero__title-line hero__title-line--1">Build.</span>
-            <span className="hero__title-line hero__title-line--2">
-              Inno<em>vate</em>.
-            </span>
-            <span className="hero__title-line hero__title-line--3">Lead.</span>
-          </h1>
-
-          <p className="hero__sub">
-            Where computer science students come to learn, compete,<br className="hero__br" />
-            and shape the future of technology.
-          </p>
-
-          <div className="hero__cta">
-            <Link to="/events" className="btn btn-primary hero__cta-main">
-              Explore Events <ArrowRight size={17} />
-            </Link>
-            <Link to="/membership" className="btn btn-outline hero__cta-sec">
-              Join IEEE CS
-            </Link>
-          </div>
-
-          {/* Floating glass stat cards */}
-          <div className="hero__stats">
+          {/* ── Metric strip ── */}
+          <div className="hero__metrics">
             {STATS.map(({ icon: Icon, value, label }) => (
-              <div className="hero__stat-pill" key={label}>
-                <Icon size={14} />
-                <span className="hero__stat-value">{value}</span>
-                <span className="hero__stat-label">{label}</span>
+              <div className="hero__metric" key={label}>
+                <Icon size={16} className="hero__metric-icon" />
+                <div className="hero__metric-text">
+                  <span className="hero__metric-value">{value}</span>
+                  <span className="hero__metric-label">{label}</span>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Scroll cue */}
-        <a href="#about" className="hero__scroll-cue">
-          <ChevronDown size={20} />
+        <a href="#about" className="hero__scroll-cue" aria-label="Scroll to about">
+          <span className="hero__scroll-cue-text">Scroll</span>
+          <ChevronDown size={16} />
         </a>
       </section>
 
@@ -248,6 +338,53 @@ export default function Home() {
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+function NextEventBlock({ event }: { event: Event }) {
+  const d = new Date(event.date);
+  const daysAway = Math.max(0, Math.ceil((d.getTime() - Date.now()) / 86_400_000));
+  const cap = event.max_participants || 0;
+  const cur = event.current_participants || 0;
+  const pct = cap > 0 ? Math.min(100, Math.round((cur / cap) * 100)) : null;
+
+  return (
+    <div className="hero__card-body">
+      <div className="hero__card-type">{event.event_type}</div>
+      <h3 className="hero__card-title">{event.title}</h3>
+
+      <div className="hero__card-line">
+        <span className="hero__card-date">
+          <Calendar size={13} />
+          {d.toLocaleString('default', { month: 'short', day: 'numeric', year: 'numeric' })}
+        </span>
+        <span className="hero__card-venue">
+          <MapPin size={13} />
+          {event.venue}
+        </span>
+      </div>
+
+      {pct !== null && (
+        <div className="hero__card-cap">
+          <div className="hero__card-cap-top">
+            <span>{cur} / {cap} registered</span>
+            <span>{pct}%</span>
+          </div>
+          <div className="hero__card-cap-bar">
+            <div className="hero__card-cap-fill" style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+      )}
+
+      <div className="hero__card-cta-row">
+        <Link to={`/events/${event.id}/register`} className="btn btn-primary btn--sm">
+          Register <ArrowUpRight size={13} />
+        </Link>
+        <span className="hero__card-countdown">
+          {daysAway === 0 ? 'Today' : `in ${daysAway} day${daysAway === 1 ? '' : 's'}`}
+        </span>
+      </div>
     </div>
   );
 }
