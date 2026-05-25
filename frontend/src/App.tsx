@@ -1,27 +1,31 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
-import { Analytics } from '@vercel/analytics/react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
-import Home from './pages/Home';
-import About from './pages/About';
-import Events from './pages/Events';
-import EventRegister from './pages/EventRegister';
-import OfficeBearers from './pages/OfficeBearers';
-import Membership from './pages/Membership';
-import Gallery from './pages/Gallery';
-import Contact from './pages/Contact';
-import AdminLogin from './pages/AdminLogin';
-import AdminDashboard from './pages/AdminDashboard';
+import RouteFallback from './components/RouteFallback';
+import { useLenis } from './hooks/useLenis';
 import './styles/globals.css';
+
+// Route-level code splitting — every page becomes its own chunk.
+const Home            = lazy(() => import('./pages/Home'));
+const About           = lazy(() => import('./pages/About'));
+const Events          = lazy(() => import('./pages/Events'));
+const EventRegister   = lazy(() => import('./pages/EventRegister'));
+const OfficeBearers   = lazy(() => import('./pages/OfficeBearers'));
+const Membership      = lazy(() => import('./pages/Membership'));
+const Gallery         = lazy(() => import('./pages/Gallery'));
+const Contact         = lazy(() => import('./pages/Contact'));
+const AdminLogin      = lazy(() => import('./pages/AdminLogin'));
+const AdminDashboard  = lazy(() => import('./pages/AdminDashboard'));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
-  useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [pathname]);
+  useEffect(() => { window.scrollTo({ top: 0, behavior: 'auto' }); }, [pathname]);
   return null;
 }
 
@@ -46,7 +50,7 @@ function NotFound() {
     }}>
       <h1 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: '10rem', color: 'var(--gold)', lineHeight: 1 }}>404</h1>
       <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>This page doesn't exist.</p>
-      <a href="/" className="btn btn-primary">← Go Home</a>
+      <a href="/" className="btn btn-primary">← Go home</a>
     </div>
   );
 }
@@ -54,27 +58,30 @@ function NotFound() {
 function AppRoutes() {
   return (
     <Layout>
-      <Routes>
-        <Route path="/"                      element={<Home />} />
-        <Route path="/about"                 element={<About />} />
-        <Route path="/events"                element={<Events />} />
-        <Route path="/events/:id"            element={<EventRegister />} />
-        <Route path="/events/:id/register"   element={<EventRegister />} />
-        <Route path="/register"              element={<Events />} />
-        <Route path="/office-bearers"        element={<OfficeBearers />} />
-        <Route path="/membership"            element={<Membership />} />
-        <Route path="/gallery"               element={<Gallery />} />
-        <Route path="/contact"               element={<Contact />} />
-        <Route path="/admin/login"           element={<AdminLogin />} />
-        <Route path="/admin"                 element={<AdminDashboard />} />
-        <Route path="*"                      element={<NotFound />} />
-      </Routes>
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/"                      element={<Home />} />
+          <Route path="/about"                 element={<About />} />
+          <Route path="/events"                element={<Events />} />
+          <Route path="/events/:id"            element={<EventRegister />} />
+          <Route path="/events/:id/register"   element={<EventRegister />} />
+          <Route path="/register"              element={<Events />} />
+          <Route path="/office-bearers"        element={<OfficeBearers />} />
+          <Route path="/membership"            element={<Membership />} />
+          <Route path="/gallery"               element={<Gallery />} />
+          <Route path="/contact"               element={<Contact />} />
+          <Route path="/admin/login"           element={<AdminLogin />} />
+          <Route path="/admin"                 element={<AdminDashboard />} />
+          <Route path="*"                      element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </Layout>
   );
 }
 
 export default function App() {
   const [loading, setLoading] = useState(true);
+  useLenis();
 
   return (
     <ThemeProvider>

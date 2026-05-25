@@ -34,9 +34,9 @@ export default function Contact() {
         <div className="page-header__bg" />
         <WaveBackground variant="hero" />
         <div className="container page-header__content">
-          <span className="section-eyebrow">Get in Touch</span>
-          <h1 className="page-header__title">Contact Us</h1>
-          <p className="page-header__desc">Have questions, ideas, or want to collaborate? We'd love to hear from you.</p>
+          <span className="section-eyebrow">Get in touch</span>
+          <h1 className="page-header__title">Contact</h1>
+          <p className="page-header__desc">Questions, collaboration ideas, sponsorship — anything. The team reads every message.</p>
         </div>
       </section>
 
@@ -48,12 +48,12 @@ export default function Contact() {
             {/* Info card */}
             <div className="contact-info-card">
               <div className="contact-info-card__logos">
-                <img src="/ieee-cs-logo.png" alt="IEEE CS" className="contact-logo" onError={e=>{(e.target as HTMLImageElement).style.display='none';}} />
-                <img src="/mits-logo.png"    alt="MITS"    className="contact-logo" onError={e=>{(e.target as HTMLImageElement).style.display='none';}} />
+                <img src="/ieee-cs-logo.png" alt="IEEE CS" loading="lazy" decoding="async" className="contact-logo" onError={e=>{(e.target as HTMLImageElement).style.display='none';}} />
+                <img src="/mits-logo.png"    alt="MITS"    loading="lazy" decoding="async" className="contact-logo" onError={e=>{(e.target as HTMLImageElement).style.display='none';}} />
               </div>
 
-              <h3>Reach Out</h3>
-              <p>We're always open to new ideas, partnerships, and conversations. Drop us a message — we'll respond within 48-72 hours!</p>
+              <h3>Reach out</h3>
+              <p>For partnerships, sponsorships, queries, or just to say hi — we usually respond within 48–72 hours.</p>
 
               <div className="contact-details">
                 {[
@@ -87,13 +87,13 @@ export default function Contact() {
               {success ? (
                 <div className="reg-success__card">
                   <div className="reg-success__icon"><CheckCircle size={56}/></div>
-                  <h2>Message Sent!</h2>
-                  <p>Thanks for reaching out. We'll respond to your inquiry as soon as possible.</p>
+                  <h2>Message sent</h2>
+                  <p>Thanks for reaching out — we'll get back to you as soon as we can.</p>
                 </div>
               ) : (
                 <div className="reg-form-card">
-                  <h2 className="reg-form-title">Send a Message</h2>
-                  <p className="reg-form-sub">Fill out the form and we'll get back to you shortly.</p>
+                  <h2 className="reg-form-title">Send a message</h2>
+                  <p className="reg-form-sub">A short note works. Include any context that helps us reply faster.</p>
                   <form onSubmit={submit}>
                     <div className="form-row">
                       <div className="form-group"><label>Your Name *</label><input name="name" value={form.name} onChange={handle} required placeholder="Full name" /></div>

@@ -59,7 +59,16 @@ function getInitials(n: string) { return n.split(' ').map(w=>w[0]).slice(0,2).jo
 
 function Avatar({ name, photo, size='md' }: { name:string; photo?:string|null; size?:'sm'|'md'|'lg' }) {
   const [err, setErr] = useState(false);
-  if (photo && !err) return <img src={photo} alt={name} className={`ob-av ob-av--${size}`} onError={()=>setErr(true)} />;
+  if (photo && !err) return (
+    <img
+      src={photo}
+      alt={name}
+      className={`ob-av ob-av--${size}`}
+      loading="lazy"
+      decoding="async"
+      onError={()=>setErr(true)}
+    />
+  );
   return <div className={`ob-av ob-av--${size} ob-av--init`}>{getInitials(name)}</div>;
 }
 
@@ -72,9 +81,9 @@ export default function OfficeBearers() {
         <div className="page-header__bg" />
         <WaveBackground variant="hero" />
         <div className="container page-header__content">
-          <span className="section-eyebrow">The Team Behind the Mission</span>
+          <span className="section-eyebrow">The team</span>
           <h1 className="page-header__title">Our<br />Leadership</h1>
-          <p className="page-header__desc">Meet the dedicated students steering the IEEE CS MITS chapter — elected, passionate, and driven.</p>
+          <p className="page-header__desc">The students elected to steer the chapter this tenure — and the divisions that make every event happen.</p>
         </div>
       </section>
 
@@ -82,11 +91,11 @@ export default function OfficeBearers() {
       <div className="ob-tenure">
         <div className="container ob-tenure__inner">
           <div className="ob-tenure__logos">
-            <img src="/ieee-cs-logo.png" alt="IEEE CS" className="ob-tenure__logo" onError={e=>{(e.target as HTMLImageElement).style.display='none';}} />
-            <img src="/mits-logo.png" alt="MITS" className="ob-tenure__logo" onError={e=>{(e.target as HTMLImageElement).style.display='none';}} />
+            <img src="/ieee-cs-logo.png" alt="IEEE CS" loading="lazy" decoding="async" className="ob-tenure__logo" onError={e=>{(e.target as HTMLImageElement).style.display='none';}} />
+            <img src="/mits-logo.png" alt="MITS" loading="lazy" decoding="async" className="ob-tenure__logo" onError={e=>{(e.target as HTMLImageElement).style.display='none';}} />
           </div>
           <span className="ob-tenure__badge">Tenure 2025 – 2026</span>
-          <span className="ob-tenure__text">Madhav Institute of Technology & Science, Gwalior</span>
+          <span className="ob-tenure__text">Madhav Institute of Technology &amp; Science, Gwalior</span>
         </div>
       </div>
 
@@ -95,8 +104,8 @@ export default function OfficeBearers() {
         <WaveBackground variant="section" />
         <div className="container" style={{ position:'relative', zIndex:1 }}>
           <div className="section-header">
-            <span className="section-eyebrow">Executive Committee</span>
-            <h2 className="section-title">Core Office Bearers</h2>
+            <span className="section-eyebrow">Executive committee</span>
+            <h2 className="section-title">Core office bearers</h2>
           </div>
           <div className="ob-core-grid">
             {LEADERSHIP.map((m, i) => (
@@ -125,8 +134,8 @@ export default function OfficeBearers() {
         <WaveBackground variant="dark" />
         <div className="container" style={{ position:'relative', zIndex:1 }}>
           <div className="section-header">
-            <span className="section-eyebrow">Specialized Teams</span>
-            <h2 className="section-title">Our Divisions</h2>
+            <span className="section-eyebrow">Specialised teams</span>
+            <h2 className="section-title">Our divisions</h2>
           </div>
 
           <div className="ob-div-tabs">
@@ -172,10 +181,10 @@ export default function OfficeBearers() {
         <div className="container cta-banner__inner">
           <div>
             <h2 className="cta-banner__title">Want to join the team?</h2>
-            <p className="cta-banner__sub">Apply for membership and contribute to building our community.</p>
+            <p className="cta-banner__sub">Applications open every year — start with a chapter membership.</p>
           </div>
           <div className="cta-banner__actions">
-            <a href="/membership" className="btn btn-primary">Apply for Membership <ExternalLink size={15}/></a>
+            <a href="/membership" className="btn btn-primary">Apply for membership <ExternalLink size={15}/></a>
           </div>
         </div>
       </section>

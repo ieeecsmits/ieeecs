@@ -1,0 +1,177 @@
+/* ════════════════════════════════════════════════════════
+   HIGHLIGHTS CAROUSEL — Embla · modern editorial cards
+   ════════════════════════════════════════════════════════ */
+.hc { position: relative; }
+
+.hc__viewport {
+  overflow: hidden;
+  margin: 0 -1.5rem;          /* let edge cards bleed slightly */
+  padding: 0 1.5rem;
+}
+
+.hc__track {
+  display: flex;
+  gap: 1.25rem;
+  touch-action: pan-y pinch-zoom;
+}
+
+/* Slide sizing — 3 cards desktop, 2 tablet, 1 mobile */
+.hc__slide {
+  flex: 0 0 calc((100% - 2.5rem) / 3);
+  min-width: 0;
+  display: flex;
+}
+
+@media (max-width: 1024px) {
+  .hc__slide { flex-basis: calc((100% - 1.25rem) / 2); }
+}
+@media (max-width: 640px) {
+  .hc__slide { flex-basis: 100%; }
+  .hc__viewport { margin: 0; padding: 0; }
+}
+
+/* Card */
+.hc__card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: 18px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+}
+.hc__card:hover {
+  transform: translateY(-5px);
+  border-color: var(--gold-border);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.22), 0 0 0 1px var(--gold-border);
+}
+
+/* Media */
+.hc__media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+}
+.hc__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(.2,.7,.2,1);
+}
+.hc__card:hover .hc__media img { transform: scale(1.06); }
+
+.hc__media-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(13,13,18,0.55) 100%);
+  pointer-events: none;
+}
+
+.hc__tag {
+  position: absolute;
+  top: 0.85rem; left: 0.85rem;
+  background: rgba(13,13,18,0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--gold);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.32rem 0.7rem;
+  border-radius: 100px;
+  border: 1px solid var(--gold-border);
+}
+
+/* Body */
+.hc__body {
+  padding: 1.35rem 1.4rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  flex: 1;
+}
+.hc__meta {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.hc__title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+}
+.hc__sub {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  flex: 1;
+}
+.hc__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--gold);
+  transition: gap 0.2s ease;
+}
+.hc__card:hover .hc__cta { gap: 0.55rem; }
+
+/* Controls */
+.hc__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  margin-top: 1.75rem;
+}
+
+.hc__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; height: 40px;
+  border-radius: 100px;
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.hc__btn:hover {
+  background: var(--gold);
+  color: #0D0D12;
+  border-color: var(--gold);
+  transform: translateY(-1px);
+}
+
+.hc__dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.hc__dot {
+  width: 7px; height: 7px;
+  border-radius: 100px;
+  background: var(--surface-border);
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: width 0.3s ease, background 0.25s ease;
+}
+.hc__dot--on {
+  width: 24px;
+  background: var(--gold);
+}
+.hc__dot:hover { background: var(--gold); }

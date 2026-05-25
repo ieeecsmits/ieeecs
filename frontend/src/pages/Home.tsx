@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { eventsAPI } from '../services/api';
 import WaveBackground from '../components/WaveBackground';
+import HighlightsCarousel, { Highlight } from '../components/HighlightsCarousel';
 import './Home.css';
 
 interface Event {
@@ -29,6 +30,63 @@ const STATS = [
 ];
 
 const ORBIT_CHIPS = ['AI / ML', 'Cloud', 'Hackathons', 'Research', 'Web3', 'Embedded'];
+
+const HIGHLIGHTS: Highlight[] = [
+  {
+    id: 'h1',
+    title: 'Frontend Battle 2026',
+    subtitle: 'Two rounds, dozens of teams, one pixel-perfect winner.',
+    image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=900&q=80',
+    tag: 'Hackathon',
+    meta: 'Mar 2026 · 200+ participants',
+    href: '/events',
+  },
+  {
+    id: 'h2',
+    title: 'Career Blueprint with Deloitte',
+    subtitle: 'A frank look at building a career in the age of AI.',
+    image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=900&q=80',
+    tag: 'Seminar',
+    meta: 'Mar 2026 · SAC',
+    href: '/events',
+  },
+  {
+    id: 'h3',
+    title: 'React & Node full-stack workshop',
+    subtitle: 'Shipping a production-grade app from scratch in a day.',
+    image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=900&q=80',
+    tag: 'Workshop',
+    meta: 'Apr 2026 · Lab 301',
+    href: '/events',
+  },
+  {
+    id: 'h4',
+    title: 'AI & ML Trends — Tech Talk',
+    subtitle: 'Industry researchers on what really moved the field this year.',
+    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=900&q=80',
+    tag: 'Tech talk',
+    meta: 'Jun 2026 · Seminar Hall',
+    href: '/events',
+  },
+  {
+    id: 'h5',
+    title: 'Chapter inauguration 2025',
+    subtitle: 'The tenure begins — new team, new programs, same standards.',
+    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=900&q=80',
+    tag: 'Chapter',
+    meta: 'Aug 2025',
+    href: '/about',
+  },
+  {
+    id: 'h6',
+    title: 'Cybersecurity & ethical hacking',
+    subtitle: 'Hands-on intro to offensive security from the red-team perspective.',
+    image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=900&q=80',
+    tag: 'Workshop',
+    meta: 'Feb 2026',
+    href: '/events',
+  },
+];
 
 const OFFERINGS = [
   { icon: Cpu,      title: 'Technical workshops',   desc: 'Hands-on sessions in AI, cloud, full-stack, and embedded systems — taught by peers and practitioners.' },
@@ -294,6 +352,25 @@ export default function Home() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ══════════════ HIGHLIGHTS CAROUSEL ══════════════ */}
+      <section className="home-highlights section-pad">
+        <WaveBackground variant="subtle" />
+        <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+          <div className="section-header--flex">
+            <div>
+              <span className="section-eyebrow">Recent highlights</span>
+              <h2 className="section-title">
+                Moments worth<br /><em>looking back at.</em>
+              </h2>
+            </div>
+            <Link to="/gallery" className="btn btn-outline btn--sm">
+              Open gallery <ArrowRight size={14} />
+            </Link>
+          </div>
+          <HighlightsCarousel items={HIGHLIGHTS} />
         </div>
       </section>
 

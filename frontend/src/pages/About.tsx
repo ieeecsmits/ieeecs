@@ -19,10 +19,10 @@ export default function About() {
         <div className="page-header__bg" />
         <WaveBackground variant="hero" />
         <div className="container page-header__content">
-          <span className="section-eyebrow">Who We Are</span>
+          <span className="section-eyebrow">Who we are</span>
           <h1 className="page-header__title">About<br />IEEE CS</h1>
           <p className="page-header__desc">
-            A community of engineers, innovators and leaders, officially affiliated with IEEE — the world's largest technical professional organisation.
+            A student-led chapter of IEEE — the world's largest technical professional society — building engineers, researchers, and leaders at MITS.
           </p>
         </div>
       </section>
@@ -32,20 +32,20 @@ export default function About() {
         <WaveBackground variant="section" />
         <div className="container abt-story__inner">
           <div className="abt-story__text">
-            <span className="section-eyebrow">Our Story</span>
+            <span className="section-eyebrow">Our story</span>
             <h2 className="section-title">Building tomorrow's<br /><em>engineers, today.</em></h2>
             <p className="section-body" style={{ marginBottom:'1rem' }}>
-              Founded in 2019, the IEEE Computer Society student chapter at MITS Gwalior has grown from a small group of passionate students into a thriving community of 500+ members.
+              Founded in 2019, the IEEE Computer Society chapter at MITS started as a small group of curious students. Six years later, it's a community of 500+ members shipping projects, running events, and pushing each other to do harder things.
             </p>
             <p className="section-body" style={{ marginBottom:'1rem' }}>
-              We provide a platform for students to engage with cutting-edge technology, develop professional skills, and connect with industry experts through workshops, hackathons, technical talks, and competitions.
+              We run workshops in modern stacks, hackathons that ship real products, research talks with industry engineers, and competitions that take members to national stages.
             </p>
             <p className="section-body">
-              Whether you're a curious fresher or a final-year researcher, IEEE CS is where you level up your skills and build lasting connections.
+              Whether you're a first-year finding your footing or a final-year preparing for interviews and research, this chapter is where you compound.
             </p>
             <div style={{ display:'flex', gap:'1rem', flexWrap:'wrap', marginTop:'2rem' }}>
               <Link to="/membership" className="btn btn-primary">Join IEEE CS <ArrowRight size={15}/></Link>
-              <Link to="/events"     className="btn btn-outline">See Events</Link>
+              <Link to="/events"     className="btn btn-outline">See events</Link>
             </div>
           </div>
 
@@ -56,9 +56,9 @@ export default function About() {
               <div className="abt-glass__shimmer" />
 
               <div className="abt-glass__logo-row">
-                <img src="/ieee-cs-logo.png" alt="IEEE CS" className="abt-glass__ieee-img"
+                <img src="/ieee-cs-logo.png" alt="IEEE CS" loading="lazy" decoding="async" className="abt-glass__ieee-img"
                   onError={(e)=>{(e.target as HTMLImageElement).style.display='none';}} />
-                <img src="/mits-logo.png" alt="MITS" className="abt-glass__mits-img"
+                <img src="/mits-logo.png" alt="MITS" loading="lazy" decoding="async" className="abt-glass__mits-img"
                   onError={(e)=>{(e.target as HTMLImageElement).style.display='none';}} />
               </div>
 
@@ -89,14 +89,14 @@ export default function About() {
         <WaveBackground variant="dark" />
         <div className="container">
           <div className="section-header">
-            <span className="section-eyebrow">Our Purpose</span>
-            <h2 className="section-title">Mission, Vision & Values</h2>
+            <span className="section-eyebrow">Our purpose</span>
+            <h2 className="section-title">Mission, vision &amp; values</h2>
           </div>
           <div className="abt-mvv__grid">
             {[
-              { icon: Target, title: 'Mission', body: 'To foster technical excellence, innovation, and leadership among computer science students through collaborative learning, competitions, and professional development.' },
-              { icon: Eye,    title: 'Vision',  body: 'To be the most impactful student-led technology organisation in our region — producing graduates who are technically skilled, ethically grounded, and globally competitive.', gold: true },
-              { icon: Heart,  title: 'Values',  body: 'Inclusivity, curiosity, collaboration, integrity, and continuous learning form the core of everything we do as a community.' },
+              { icon: Target, title: 'Mission', body: 'Build technical depth and leadership in computer-science students through collaborative learning, real projects, and competition.' },
+              { icon: Eye,    title: 'Vision',  body: 'Be the most impactful student-led technology chapter in the region — producing graduates who ship, lead, and stand on their own technical work.', gold: true },
+              { icon: Heart,  title: 'Values',  body: 'Inclusivity, curiosity, ownership, integrity, and the discipline of continuous learning. Everything we do compounds from these.' },
             ].map(({ icon: Icon, title, body, gold }) => (
               <div key={title} className={`abt-mvv__card ${gold ? 'abt-mvv__card--gold' : ''}`}>
                 <div className="abt-mvv__card-icon"><Icon size={26}/></div>
@@ -114,10 +114,10 @@ export default function About() {
         <WaveBackground variant="section" />
         <div className="container abt-global__inner">
           <div>
-            <span className="section-eyebrow">Part of Something Global</span>
-            <h2 className="section-title">IEEE — World's Largest<br /><em>Technical Organisation</em></h2>
+            <span className="section-eyebrow">Part of something global</span>
+            <h2 className="section-title">IEEE — the world's largest<br /><em>technical society.</em></h2>
             <p className="section-body" style={{ marginBottom:'1.5rem' }}>
-              As an IEEE student chapter, we're part of a global network of 400,000+ professionals across 160+ countries. Members gain access to IEEE's vast resources — publications, certifications, and a professional network that spans the globe.
+              Through our chapter, members tap into IEEE's network of 400,000+ professionals across 160+ countries — papers from IEEE Xplore, certifications, conferences, and a hiring funnel that reaches far beyond campus.
             </p>
             <div style={{ display:'flex', gap:'1rem', flexWrap:'wrap' }}>
               <a href="https://www.ieee.org" target="_blank" rel="noreferrer" className="btn btn-outline">Visit IEEE.org <ArrowRight size={15}/></a>
@@ -140,12 +140,12 @@ export default function About() {
         <WaveBackground variant="subtle" />
         <div className="container cta-banner__inner">
           <div>
-            <h2 className="cta-banner__title">Want to be part of our story?</h2>
-            <p className="cta-banner__sub">Apply for membership or come to our next event.</p>
+            <h2 className="cta-banner__title">Write the next chapter with us.</h2>
+            <p className="cta-banner__sub">Apply for membership or drop into the next event.</p>
           </div>
           <div className="cta-banner__actions">
-            <Link to="/membership" className="btn btn-primary">Apply for Membership <ArrowRight size={17}/></Link>
-            <Link to="/events" className="btn btn-outline-gold">See Events</Link>
+            <Link to="/membership" className="btn btn-primary">Apply for membership <ArrowRight size={17}/></Link>
+            <Link to="/events" className="btn btn-outline-gold">See events</Link>
           </div>
         </div>
       </section>

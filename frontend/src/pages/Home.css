@@ -707,6 +707,13 @@
 }
 .offering-card:hover .offering-card__line { transform: scaleX(1); }
 
+/* ══════ HIGHLIGHTS ══════ */
+.home-highlights {
+  background: var(--bg-primary);
+  position: relative;
+  overflow: hidden;
+}
+
 /* ══════ HOME EVENTS ══════ */
 .home-events {
   background: var(--bg-secondary);

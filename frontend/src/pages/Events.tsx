@@ -49,9 +49,9 @@ export default function Events() {
         <div className="page-header__bg" />
         <WaveBackground variant="hero" />
         <div className="container page-header__content">
-          <span className="section-eyebrow">What's Happening</span>
+          <span className="section-eyebrow">What's happening</span>
           <h1 className="page-header__title">Events</h1>
-          <p className="page-header__desc">Workshops, hackathons, seminars and more. Find your next opportunity to learn and grow.</p>
+          <p className="page-header__desc">Workshops, hackathons, seminars, and competitions. Filter by what you're looking for — pick your next one.</p>
         </div>
       </section>
 
@@ -94,7 +94,7 @@ export default function Events() {
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="ev-empty">No events found. Try adjusting your filters.</div>
+            <div className="ev-empty">No events match those filters. Try widening the search.</div>
           ) : (
             <div className="ev-grid">
               {filtered.map((ev, i) => <EvCard key={ev.id} ev={ev} idx={i} />)}

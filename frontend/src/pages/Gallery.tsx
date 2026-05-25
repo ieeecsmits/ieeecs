@@ -107,9 +107,9 @@ export default function Gallery() {
         <div className="page-header__bg" />
         <WaveBackground variant="hero" />
         <div className="container page-header__content">
-          <span className="section-eyebrow">Memories & Moments</span>
+          <span className="section-eyebrow">Memories &amp; moments</span>
           <h1 className="page-header__title">Gallery</h1>
-          <p className="page-header__desc">A visual journey through our events, workshops, hackathons, and achievements.</p>
+          <p className="page-header__desc">Years of events, workshops, hackathons, and the people who showed up to make them happen.</p>
         </div>
       </section>
 
@@ -118,8 +118,8 @@ export default function Gallery() {
         <WaveBackground variant="dark" />
         <div className="container" style={{ position:'relative', zIndex:1 }}>
           <div className="section-header">
-            <span className="section-eyebrow">Featured Moments</span>
-            <h2 className="section-title">3D Showcase</h2>
+            <span className="section-eyebrow">Featured moments</span>
+            <h2 className="section-title">A look around<br /><em>the chapter.</em></h2>
           </div>
           <Carousel3D images={images} />
         </div>
@@ -131,8 +131,8 @@ export default function Gallery() {
         <div className="container" style={{ position:'relative', zIndex:1 }}>
           <div className="section-header--flex" style={{ marginBottom:'2rem' }}>
             <div>
-              <span className="section-eyebrow">All Photos</span>
-              <h2 className="section-title" style={{ marginBottom:0 }}>Photo Archive</h2>
+              <span className="section-eyebrow">All photos</span>
+              <h2 className="section-title" style={{ marginBottom:0 }}>The full archive</h2>
             </div>
           </div>
 
