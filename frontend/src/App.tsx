@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { Analytics } from '@vercel/analytics/react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
@@ -84,6 +85,7 @@ export default function App() {
             <>
               <ScrollToTop />
               <AppRoutes />
+              <Analytics />
               <Toaster
                 position="top-right"
                 toastOptions={{
