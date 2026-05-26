@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ override: true });
 
 const REQUIRED = ['MONGODB_URI', 'JWT_SECRET'];
 const missing = REQUIRED.filter((k) => !process.env[k]);

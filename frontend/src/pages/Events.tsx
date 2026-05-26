@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Users, Search, ArrowRight, Clock, Filter } from 'lucide-react';
+import { Calendar, MapPin, Users, Search, ArrowRight, Clock, Filter } from 'lucide-react';
 import { eventsAPI } from '../services/api';
 import WaveBackground from '../components/WaveBackground';
 import './Events.css';
@@ -17,7 +17,7 @@ const STATUSES = ['All','upcoming','ongoing','completed'];
 
 const SAMPLES: Event[] = [
   { id:'1', title:'Career Blueprint: Insights from Deolite MD', description:'', short_description:'Industry experts on Career Guidance & how aAI impact or career.', event_type:'seminar', status:'completed', date:'2026-03-26', time:'4:00', venue:'SAC', is_online:false, current_participants:45, max_participants:200, tags:['Career Guidance'] },
-  { id:'2', title:'Frontend Battle 2026: Code for Change', description:'', short_description:' Frontend Battle 2K26 is a competitive web development event hosted by the IEEE Computer Society at MITS Gwalior, built around the core theme of "Design. Code. Deploy." The competition is structured into two main stages: a free-to-enter Round 1 (Portfolio Showdown) focused on building and showcasing a personal developer portfolio, followed by a Round 2 (Pixel Perfect Battle) where qualifiers must code a specific frontend interface layout on the spot. Open to both solo and duo participants, the event uniquely permits the use of AI tools and offers a lucrative 10K+ prize pool filled with cash awards, goodies, and refreshments, alongside hardcopy certificates for all Round 2 finalists. It is scheduled to take place on March 28th at 11:00 AM at the Student Activity Center (SAC) campus venue, and interested students can quickly register', event_type:'hackathon', status:'completed', date:'2026-03-28', time:'11:00', venue:'Seminar Hall(8-9-10)', is_online:false, current_participants: 0, max_participants: 500, tags:['Mini-Hackathon','Coding'] },
+  { id:'2', title:'Frontend Battle 2026: Code for Change', description:'', short_description:' Frontend Battle 2K26 is a competitive web development event hosted by the IEEE Computer Society at MITS Gwalior, built around the core theme of "Design. Code. Deploy." The competition is structured into two main stages: a free-to-enter Round 1 (Portfolio Showdown) focused on building and showcasing a personal developer portfolio, followed by a Round 2 (Pixel Perfect Battle) where qualifiers must code a specific frontend interface layout on the spot. Open to both solo and duo participants, the event uniquely permits the use of AI tools and offers a lucrative 10K+ prize pool filled with cash awards, goodies, and refreshments, alongside hardcopy certificates for all Round 2 finalists. It is scheduled to take place on March 28th at 11:00 AM at the Student Activity Center (SAC) campus venue, and interested students can quickly register', event_type:'hackathon', status:'completed', date:'2026-03-28', time:'11:00', venue:'Seminar Hall(8-9-10)', is_online:false, total_participants: 500, tags:['Mini-Hackathon','Coding'] },
 ];
 
 export default function Events() {
@@ -49,9 +49,9 @@ export default function Events() {
         <div className="page-header__bg" />
         <WaveBackground variant="hero" />
         <div className="container page-header__content">
-          <span className="section-eyebrow">What's happening</span>
+          <span className="section-eyebrow">What's Happening</span>
           <h1 className="page-header__title">Events</h1>
-          <p className="page-header__desc">Workshops, hackathons, seminars, and competitions. Filter by what you're looking for — pick your next one.</p>
+          <p className="page-header__desc">Workshops, hackathons, seminars and more. Find your next opportunity to learn and grow.</p>
         </div>
       </section>
 
@@ -94,7 +94,7 @@ export default function Events() {
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="ev-empty">No events match those filters. Try widening the search.</div>
+            <div className="ev-empty">No events found. Try adjusting your filters.</div>
           ) : (
             <div className="ev-grid">
               {filtered.map((ev, i) => <EvCard key={ev.id} ev={ev} idx={i} />)}

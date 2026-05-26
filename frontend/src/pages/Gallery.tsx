@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
 import { galleryAPI } from '../services/api';
 import WaveBackground from '../components/WaveBackground';
@@ -6,22 +6,93 @@ import './Gallery.css';
 
 interface GalleryImage { id: string; title: string; description: string; image_url: string; category: string; event_title?: string; }
 
-const CATS = ['All','events','workshops','hackathons','team','general'];
+const CATS = ['All','events','workshops','hackathons','team','people','general'];
 
+// ── Real Event Photos ──────────────────────────────────────────────────────────
+// Replace these local paths with your actual event photos saved in frontend/public/gallery
 const DEMO: GalleryImage[] = [
-  { id:'1',  title:'Hackathon 2025',        description:'Teams competing', image_url:'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=700&q=80', category:'hackathons' },
-  { id:'2',  title:'React Workshop',        description:'Hands-on session', image_url:'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=700&q=80', category:'workshops' },
-  { id:'3',  title:'Tech Talk',             description:'Industry seminar', image_url:'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=700&q=80', category:'events' },
-  { id:'4',  title:'Team Photo 2025',       description:'IEEE CS team', image_url:'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=700&q=80', category:'team' },
-  { id:'5',  title:'Coding Competition',    description:'Annual contest', image_url:'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=700&q=80', category:'events' },
-  { id:'6',  title:'AI Workshop',           description:'ML workshop', image_url:'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=700&q=80', category:'workshops' },
-  { id:'7',  title:'Award Ceremony',        description:'Recognising contributions', image_url:'https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=700&q=80', category:'events' },
-  { id:'8',  title:'Technical Fest',        description:'Annual techfest', image_url:'https://images.unsplash.com/photo-1560439514-4e9645039924?w=700&q=80', category:'events' },
-  { id:'9',  title:'Networking Session',    description:'Industry networking', image_url:'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=700&q=80', category:'general' },
-  { id:'10', title:'Inauguration',          description:'Chapter ceremony', image_url:'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=700&q=80', category:'events' },
-  { id:'11', title:'Cybersecurity Talk',    description:'Ethical hacking talk', image_url:'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=700&q=80', category:'workshops' },
-  { id:'12', title:'Leadership Meet',       description:'Core team session', image_url:'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=700&q=80', category:'team' },
+  {
+    id: '1',
+    title: 'Chapter Inauguration',
+    description: 'Official inauguration ceremony of the IEEE Computer Society Student Branch Chapter with faculty and students.',
+    image_url: '/gallery/inauguration-1.jpg',
+    category: 'events',
+    event_title: 'IEEE CS SBC Inauguration',
+  },
+  {
+    id: '2',
+    title: 'Guest Speaker Session',
+    description: 'Dr. Sandeep Sharma delivering the keynote talk on career opportunities and leadership.',
+    image_url: '/gallery/keynote-session.jpg',
+    category: 'events',
+    event_title: 'Career Blueprint Talk',
+  },
+  {
+    id: '3',
+    title: 'Panel Discussion',
+    description: 'Panel members and faculty during the inauguration event discussion session.',
+    image_url: '/gallery/panel-discussion.jpg',
+    category: 'events',
+    event_title: 'Inauguration Panel',
+  },
+  {
+    id: '4',
+    title: 'Audience Interaction',
+    description: 'Students asking questions and engaging with the guest speaker in the auditorium.',
+    image_url: '/gallery/audience-interaction.jpg',
+    category: 'general',
+    event_title: 'Interactive Q&A',
+  },
+  {
+    id: '5',
+    title: 'Workshop Session',
+    description: 'Participants working on laptops during a hands-on workshop session.',
+    image_url: '/gallery/workshop-lab.jpg',
+    category: 'workshops',
+    event_title: 'Hands-on Workshop',
+  },
+  {
+    id: '6',
+    title: 'Student Team',
+    description: 'Core student volunteers and office bearers coordinating the event operations.',
+    image_url: '/gallery/team-volunteers.jpg',
+    category: 'team',
+    event_title: 'Student Team',
+  },
+  {
+    id: '7',
+    title: 'Event Coordination',
+    description: 'Organizers setting up the venue and ensuring a smooth event experience.',
+    image_url: '/gallery/event-coordination.jpg',
+    category: 'general',
+    event_title: 'Event Setup',
+  },
+  {
+    id: '8',
+    title: 'Lecture Hall',
+    description: 'Wide view of the audience seated in the lecture hall during the event.',
+    image_url: '/gallery/lecture-hall.jpg',
+    category: 'events',
+    event_title: 'Main Session',
+  },
+  {
+    id: '9',
+    title: 'Project Showcase',
+    description: 'Students presenting their project demos and shareable portfolios.',
+    image_url: '/gallery/project-showcase.jpg',
+    category: 'hackathons',
+    event_title: 'Project Demo',
+  },
+  {
+    id: '10',
+    title: 'Networking Moment',
+    description: 'Attendees networking and collaborating during a campus event.',
+    image_url: '/gallery/networking.jpg',
+    category: 'people',
+    event_title: 'Networking Session',
+  },
 ];
+// ──────────────────────────────────────────────────────────────────────────────
 
 /* 3-D Rotating Carousel */
 function Carousel3D({ images }: { images: GalleryImage[] }) {
@@ -33,14 +104,14 @@ function Carousel3D({ images }: { images: GalleryImage[] }) {
   const radius = Math.round((CARD_WIDTH * GAP_MULTIPLIER) / (2 * Math.sin(Math.PI / total)));
 
   const prev = () => setActive(a => (a - 1 + total) % total);
-  const next = useCallback(() => setActive(a => (a + 1) % total), [total]);
+  const next = () => setActive(a => (a + 1) % total);
 
   // Auto-rotate
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   useEffect(() => {
     timerRef.current = setInterval(next, 3200);
     return () => clearInterval(timerRef.current);
-  }, [total, next]);
+  }, [total]);
 
   return (
     <div className="c3d">
@@ -107,9 +178,9 @@ export default function Gallery() {
         <div className="page-header__bg" />
         <WaveBackground variant="hero" />
         <div className="container page-header__content">
-          <span className="section-eyebrow">Memories &amp; moments</span>
+          <span className="section-eyebrow">Memories & Moments</span>
           <h1 className="page-header__title">Gallery</h1>
-          <p className="page-header__desc">Years of events, workshops, hackathons, and the people who showed up to make them happen.</p>
+          <p className="page-header__desc">A visual journey through our events, workshops, hackathons, and achievements.</p>
         </div>
       </section>
 
@@ -118,8 +189,8 @@ export default function Gallery() {
         <WaveBackground variant="dark" />
         <div className="container" style={{ position:'relative', zIndex:1 }}>
           <div className="section-header">
-            <span className="section-eyebrow">Featured moments</span>
-            <h2 className="section-title">A look around<br /><em>the chapter.</em></h2>
+            <span className="section-eyebrow">Featured Moments</span>
+            <h2 className="section-title">A look around the chapter</h2>
           </div>
           <Carousel3D images={images} />
         </div>
@@ -131,8 +202,8 @@ export default function Gallery() {
         <div className="container" style={{ position:'relative', zIndex:1 }}>
           <div className="section-header--flex" style={{ marginBottom:'2rem' }}>
             <div>
-              <span className="section-eyebrow">All photos</span>
-              <h2 className="section-title" style={{ marginBottom:0 }}>The full archive</h2>
+              <span className="section-eyebrow">All Photos</span>
+              <h2 className="section-title" style={{ marginBottom:0 }}>Photo Archive</h2>
             </div>
           </div>
 
@@ -181,21 +252,3 @@ export default function Gallery() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

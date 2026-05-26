@@ -6,10 +6,10 @@ import WaveBackground from '../components/WaveBackground';
 import './Membership.css';
 
 const BENEFITS = [
-  { icon: BookOpen, title: 'IEEE Xplore access',       desc: 'Read papers, journals, and magazines from one of the world\'s deepest engineering libraries.' },
-  { icon: Users,    title: 'Global network',           desc: 'A direct line into IEEE — 400,000+ engineers and researchers across 160+ countries.' },
-  { icon: Star,     title: 'Priority for events',      desc: 'Early registration and reserved seats for chapter workshops, hackathons, and talks.' },
-  { icon: Globe,    title: 'Career & research tools',  desc: 'Job board, resume reviews, interview prep, certifications, and mentor connections.' },
+  { icon: BookOpen, title: 'IEEE Digital Library',    desc: 'Access thousands of technical papers, journals and magazines from IEEE Xplore.' },
+  { icon: Users,    title: 'Global Network',           desc: 'Connect with 400,000+ IEEE professionals across 160+ countries.' },
+  { icon: Star,     title: 'Exclusive Events',         desc: 'Priority registration for all chapter workshops, hackathons and seminars.' },
+  { icon: Globe,    title: 'Career Resources',         desc: 'Job board, resume reviews, interview prep and career development tools.' },
 ];
 
 export default function Membership() {
@@ -30,8 +30,7 @@ export default function Membership() {
       await membershipAPI.apply(form);
       setSuccess(true);
       toast.success('Application submitted! ✅');
-    } catch (err: unknown) {
-      // @ts-expect-error err is unknown
+    } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Submission failed. Try again.');
     } finally {
       setSubmitting(false);
@@ -44,9 +43,9 @@ export default function Membership() {
         <div className="page-header__bg" />
         <WaveBackground variant="hero" />
         <div className="container page-header__content">
-          <span className="section-eyebrow">Join the chapter</span>
+          <span className="section-eyebrow">Be Part of the Community</span>
           <h1 className="page-header__title">Membership</h1>
-          <p className="page-header__desc">Membership opens the chapter — events, mentorship, IEEE resources, and a network you'll be in for years.</p>
+          <p className="page-header__desc">Join IEEE CS and become part of the world's most impactful student technical community.</p>
         </div>
       </section>
 
@@ -55,8 +54,8 @@ export default function Membership() {
         <WaveBackground variant="section" />
         <div className="container" style={{ position:'relative', zIndex:1 }}>
           <div className="section-header">
-            <span className="section-eyebrow">Why join</span>
-            <h2 className="section-title">What you get<br /><em>as a member.</em></h2>
+            <span className="section-eyebrow">Why Join?</span>
+            <h2 className="section-title">Member Benefits</h2>
           </div>
           <div className="mem-benefits-grid">
             {BENEFITS.map(({ icon: Icon, title, desc }) => (
@@ -82,14 +81,14 @@ export default function Membership() {
               {success ? (
                 <div className="reg-success__card">
                   <div className="reg-success__icon"><CheckCircle size={56}/></div>
-                  <h2>Application submitted</h2>
-                  <p>We've got it. The team reviews applications within 2–3 working days and you'll hear back by email.</p>
-                  <a href="/" className="btn btn-primary" style={{ marginTop:'1.5rem', display:'inline-flex' }}>Back to home</a>
+                  <h2>Application Submitted!</h2>
+                  <p>Thank you for applying. Our team will review your application and get back to you within 2–3 working days.</p>
+                  <a href="/" className="btn btn-primary" style={{ marginTop:'1.5rem', display:'inline-flex' }}>Back to Home</a>
                 </div>
               ) : (
                 <div className="reg-form-card">
-                  <h2 className="reg-form-title">Apply for membership</h2>
-                  <p className="reg-form-sub">A few details to verify you're a student and to set up your chapter profile.</p>
+                  <h2 className="reg-form-title">Membership Application</h2>
+                  <p className="reg-form-sub">Fill in your details to apply for IEEE CS chapter membership.</p>
                   <form onSubmit={submit}>
                     <div className="form-row">
                       <div className="form-group"><label>Full Name *</label><input name="name" value={form.name} onChange={handle} required placeholder="Your full name" /></div>
@@ -130,23 +129,23 @@ export default function Membership() {
             <div className="mem-sidebar">
               <div className="mem-info-card">
                 <div className="mem-info-card__logos">
-                  <img src="/ieee-cs-logo.png" alt="IEEE CS" loading="lazy" decoding="async" className="mem-info-logo" onError={e=>{(e.target as HTMLImageElement).style.display='none';}} />
-                  <img src="/mits-logo.png" alt="MITS" loading="lazy" decoding="async" className="mem-info-logo" onError={e=>{(e.target as HTMLImageElement).style.display='none';}} />
+                  <img src="/ieee-cs-logo.png" alt="IEEE CS" className="mem-info-logo" onError={e=>{(e.target as HTMLImageElement).style.display='none';}} />
+                  <img src="/mits-logo.png" alt="MITS" className="mem-info-logo" onError={e=>{(e.target as HTMLImageElement).style.display='none';}} />
                 </div>
-                <h4>Student membership</h4>
-                <p>Open to every enrolled MITS student. All chapter events, all resources, no separate fees.</p>
+                <h4>Student Membership</h4>
+                <p>Open to all enrolled students. Get access to all chapter events and resources at MITS Gwalior.</p>
                 <ul className="mem-checklist">
-                  {['All chapter events','IEEE digital resources','Certification workshops','Mentor introductions','Letter of appreciation','Certificate of membership'].map(i=>(
+                  {['All chapter events','IEEE digital resources','Certification workshops','Networking opportunities','Letter of appreciation','Certificate of membership'].map(i=>(
                     <li key={i}><CheckCircle size={13}/> {i}</li>
                   ))}
                 </ul>
               </div>
 
               <div className="mem-info-card mem-info-card--dark">
-                <h4>IEEE global membership</h4>
-                <p>Upgrade to a full IEEE membership for global network access, publications, and conference benefits.</p>
+                <h4>IEEE Global Membership</h4>
+                <p>Upgrade to official IEEE global membership for worldwide network access and publications.</p>
                 <a href="https://www.ieee.org/membership/join/index.html" target="_blank" rel="noreferrer" className="btn btn-outline-gold" style={{ marginTop:'1rem', width:'100%', justifyContent:'center' }}>
-                  Learn more →
+                  Learn More →
                 </a>
               </div>
             </div>

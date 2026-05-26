@@ -27,6 +27,7 @@ app.use(cors({
   origin: (origin, cb) => {
     if (!origin) return cb(null, true);
     if (env.corsOrigins.includes(origin)) return cb(null, true);
+    if (env.isDevelopment && origin.startsWith('http://localhost')) return cb(null, true);
     return cb(new Error(`CORS blocked: ${origin}`));
   },
   credentials: true,
@@ -60,7 +61,7 @@ let server;
 const start = async () => {
   await connect();
   server = app.listen(env.port, () => {
-    console.log(`🚀 IEEE CS API running on http://localhost:${env.port} [${env.nodeEnv}]`);
+    console.log(` IEEE CS API running on http://localhost:${env.port} [${env.nodeEnv}]`);
   });
 };
 
@@ -70,7 +71,7 @@ const shutdown = (signal) => {
   closeHttp()
     .then(() => mongoose.disconnect())
     .then(() => {
-      console.log('✅ Closed HTTP server and MongoDB connection');
+      console.log(' Closed HTTP server and MongoDB connection');
       process.exit(0);
     })
     .catch((err) => {
@@ -92,7 +93,7 @@ process.on('uncaughtException', (err) => {
 });
 
 start().catch((err) => {
-  console.error('❌ Failed to start server:', err);
+  console.error(' Failed to start server:', err);
   process.exit(1);
 });
 

@@ -1,12 +1,17 @@
+
+
+
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   motion, useScroll, useTransform, useReducedMotion,
 } from 'framer-motion';
 import {
-  ArrowRight, ArrowUpRight, ChevronDown, Users, Calendar, Award, Globe,
+  ArrowRight, ArrowUpRight, Users, Calendar, Award, Globe,
   Cpu, Zap, BookOpen, MapPin, Sparkles, Rocket, Code2, Cloud, Brain,
   Layers, Shield, Database, GitBranch, Terminal, Wifi,
+  Github, Linkedin, Instagram, Play,
 } from 'lucide-react';
 import { eventsAPI } from '../services/api';
 import WaveBackground from '../components/WaveBackground';
@@ -37,7 +42,21 @@ const STATS: { icon: typeof Users; value: number; suffix: string; label: string 
   { icon: Globe,    value: 5,   suffix: '+', label: 'Years Active' },
 ];
 
-const ORBIT_CHIPS = ['AI / ML', 'Cloud', 'Hackathons', 'Research', 'Web3', 'Embedded'];
+const HERO_TICKER = [
+  'Build the future',
+  'Ship real projects',
+  'Hackathons every term',
+  'Research that matters',
+  'Workshops every week',
+  'Open-source culture',
+  'Mentorship that scales',
+];
+
+const HERO_SOCIAL = [
+  { Icon: Github,    href: 'https://github.com',    label: 'GitHub' },
+  { Icon: Linkedin,  href: 'https://linkedin.com',  label: 'LinkedIn' },
+  { Icon: Instagram, href: 'https://instagram.com', label: 'Instagram' },
+];
 
 const TECH_STRIP = [
   { Icon: Brain,     label: 'AI / ML' },
@@ -194,92 +213,168 @@ export default function Home() {
         <div className="hero__grid-texture" />
         <div className="hero__noise" aria-hidden="true" />
         <div className="hero__spotlight" aria-hidden="true" />
+        <div className="hero__vignette" aria-hidden="true" />
 
         <motion.div className="hero__glow hero__glow--1" style={{ y: glowY1 }} />
         <motion.div className="hero__glow hero__glow--2" style={{ y: glowY2 }} />
         <motion.div className="hero__glow hero__glow--3" style={{ y: glowY3 }} />
 
+        {/* IEEE-CS branded ring — rotating wordmark text on a circular path */}
+        <div className="hero__ring" aria-hidden="true">
+          <svg viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              {/* Path the wordmark rides on — circle traced counter-clockwise
+                  so the text reads upright along the outside. */}
+              <path
+                id="hero-ring-path"
+                d="M 300,300 m -240,0 a 240,240 0 1,1 480,0 a 240,240 0 1,1 -480,0"
+              />
+              <linearGradient id="hero-ring-fade" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%"   stopColor="rgba(245,197,24,0.95)" />
+                <stop offset="60%"  stopColor="rgba(245,197,24,0.35)" />
+                <stop offset="100%" stopColor="rgba(245,197,24,0)" />
+              </linearGradient>
+            </defs>
+
+            {/* Thin solid outer ring — clean, no clock-face dashes */}
+            <circle cx="300" cy="300" r="270" fill="none" stroke="rgba(245,197,24,0.18)" strokeWidth="1" />
+
+            {/* Compass nodes at N / E / S / W — small gold ticks */}
+            <g stroke="rgba(245,197,24,0.7)" strokeWidth="1.5" strokeLinecap="round">
+              <line x1="300" y1="24"  x2="300" y2="40"  />
+              <line x1="576" y1="300" x2="560" y2="300" />
+              <line x1="300" y1="576" x2="300" y2="560" />
+              <line x1="24"  y1="300" x2="40"  y2="300" />
+            </g>
+
+            {/* Rotating wordmark — IEEE Computer Society identity */}
+            <text
+              className="hero__ring-text"
+              fill="url(#hero-ring-fade)"
+              fontFamily="'DM Sans', sans-serif"
+              fontSize="13"
+              fontWeight="700"
+              letterSpacing="6"
+            >
+              <textPath href="#hero-ring-path" startOffset="0">
+                IEEE  ·  COMPUTER  SOCIETY  ·  MITS  STUDENT  CHAPTER  ·  TENURE  2025—26  ·  EST  2019  ·
+              </textPath>
+            </text>
+          </svg>
+        </div>
+
+        {/* Vertical side rail — left edge */}
+        <aside className="hero__rail" aria-label="Chapter info">
+          <span className="hero__rail-text">EST · 2019 — CHAPTER #STB48051</span>
+          <span className="hero__rail-divider" aria-hidden="true" />
+          <div className="hero__rail-social">
+            {HERO_SOCIAL.map(({ Icon, href, label }) => (
+              <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label} className="hero__rail-icon">
+                <Icon size={13} />
+              </a>
+            ))}
+          </div>
+        </aside>
+
         <motion.div className="container hero__body" style={{ y: heroLift, opacity: heroFade }}>
           <div className="hero__grid">
             {/* ── LEFT: typography ── */}
             <div className="hero__left">
-              <div className="hero__eyebrow">
-                <span className="hero__eyebrow-dot" />
-                <span className="hero__eyebrow-text">
-                  <span className="hero__eyebrow-live">Now active</span>
-                  <span className="hero__eyebrow-sep">·</span>
-                  IEEE Computer Society Chapter
-                </span>
+              <div className="hero__eyebrow-row">
+                <div className="hero__eyebrow">
+                  <span className="hero__eyebrow-dot" />
+                  <span className="hero__eyebrow-text">
+                    <span className="hero__eyebrow-live">Live</span>
+                    <span className="hero__eyebrow-sep">·</span>
+                    IEEE Computer Society — MITS
+                  </span>
+                </div>
+                <Link to="/events" className="hero__eyebrow-cta">
+                  View open events <ArrowUpRight size={11} />
+                </Link>
               </div>
 
-              <h1 className="hero__title">
-                <WordReveal text="Build." className="hero__title-line hero__title-line--1" baseDelay={0.15} />
+              <h1 className="hero__title" aria-label="Build. Innovate. Lead.">
+                <span className="hero__title-line hero__title-line--1">
+                  <CharReveal text="BUILD." baseDelay={0.1} />
+                </span>
                 <span className="hero__title-line hero__title-line--2">
                   <span className="hero__title-grad">
-                    <WordReveal text="Innovate." baseDelay={0.32} inline gradient />
+                    <CharReveal text="INNO" baseDelay={0.28} />
+                    <em className="hero__title-em">
+                      <CharReveal text="VATE" baseDelay={0.48} />
+                    </em>
+                    <span className="hero__title-dot">.</span>
                   </span>
                 </span>
-                <WordReveal text="Lead." className="hero__title-line hero__title-line--3" baseDelay={0.5} />
+                <span className="hero__title-line hero__title-line--3">
+                  <CharReveal text="LEAD." baseDelay={0.72} />
+                </span>
               </h1>
 
-              <p className="hero__sub">
-                A community of computer-science students shipping real projects,
-                running hackathons, and shaping what comes next in tech.
-              </p>
+              <div className="hero__sub-wrap">
+                <span className="hero__sub-bar" aria-hidden="true" />
+                <p className="hero__sub">
+                  A community of computer-science students shipping real projects,
+                  running hackathons, and shaping what comes next in tech.
+                </p>
+              </div>
 
               <div className="hero__cta">
                 <MagneticLink to="/events" className="btn btn-primary hero__cta-main">
                   Explore Events <ArrowRight size={17} />
                 </MagneticLink>
-                <MagneticLink to="/membership" className="btn btn-outline hero__cta-sec">
+                <MagneticLink to="/membership" className="btn btn-ghost hero__cta-sec">
+                  <span className="hero__cta-play" aria-hidden="true">
+                    <Play size={11} fill="currentColor" />
+                  </span>
                   Become a Member
                 </MagneticLink>
               </div>
 
-              <p className="hero__trust">
-                <Sparkles size={13} />
-                Affiliated with <strong>IEEE</strong> — 400,000+ members across 160+ countries.
-              </p>
+              <div className="hero__trust">
+                <span className="hero__trust-avatars" aria-hidden="true">
+                  <span /><span /><span /><span />
+                </span>
+                <span className="hero__trust-text">
+                  Joined by <strong>500+ students</strong> &nbsp;·&nbsp; affiliated with IEEE (160+ countries)
+                </span>
+              </div>
             </div>
 
-            {/* ── RIGHT: glass next-event card + orbiting chips ── */}
+            {/* ── RIGHT: glass next-event card ── */}
             <div className="hero__right">
-              <div className="hero__orbit" aria-hidden="true">
-                {ORBIT_CHIPS.map((label, i) => (
-                  <span
-                    key={label}
-                    className="hero__orbit-chip"
-                    style={{ ['--i' as never]: i, ['--n' as never]: ORBIT_CHIPS.length }}
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
-
               <div className="hero__card" ref={cardRef}>
+                <div className="hero__card-border" aria-hidden="true" />
                 <div className="hero__card-bar" />
 
-                <div className="hero__card-head">
-                  <div className="hero__card-badge">
-                    <span>IEEE</span>
-                    <span>CS</span>
+                <div className="hero__card-inner">
+                  <div className="hero__card-head">
+                    <div className="hero__card-badge">
+                      <span>IEEE</span>
+                      <span>CS</span>
+                    </div>
+                    <div className="hero__card-meta">
+                      <span className="hero__card-kicker">
+                        <span className="hero__card-kicker-dot" />
+                        Next up
+                      </span>
+                      <span className="hero__card-tenure">Tenure 2025 — 26</span>
+                    </div>
+                    <div className="hero__card-corner" aria-hidden="true">
+                      <span />
+                      <span />
+                    </div>
                   </div>
-                  <div className="hero__card-meta">
-                    <span className="hero__card-kicker">
-                      <span className="hero__card-kicker-dot" />
-                      Next up
-                    </span>
-                    <span className="hero__card-tenure">Tenure 2025 — 26</span>
-                  </div>
-                </div>
 
-                {nextEvent ? <NextEventBlock event={nextEvent} /> : null}
+                  {nextEvent ? <NextEventBlock event={nextEvent} /> : null}
 
-                <div className="hero__card-foot">
-                  <div className="hero__card-tags">
-                    <span className="tag">Workshops</span>
-                    <span className="tag">Hackathons</span>
-                    <span className="tag">Research</span>
+                  <div className="hero__card-foot">
+                    <div className="hero__card-tags">
+                      <span className="tag">Workshops</span>
+                      <span className="tag">Hackathons</span>
+                      <span className="tag">Research</span>
+                    </div>
                   </div>
                 </div>
 
@@ -306,14 +401,30 @@ export default function Home() {
                   </span>
                   <span className="hero__metric-label">{label}</span>
                 </div>
+                <span className="hero__metric-line" aria-hidden="true" />
               </div>
             ))}
           </div>
         </motion.div>
 
+        {/* Ticker tape at hero bottom */}
+        <div className="hero__ticker" aria-hidden="true">
+          <Marquee speed={55}>
+            {HERO_TICKER.map((w, i) => (
+              <span className="hero__ticker-word" key={i}>
+                <span className="hero__ticker-star">✦</span>
+                {w}
+              </span>
+            ))}
+          </Marquee>
+        </div>
+
+        {/* Animated vertical scroll cue (right) */}
         <a href="#about" className="hero__scroll-cue" aria-label="Scroll to about">
           <span className="hero__scroll-cue-text">Scroll</span>
-          <ChevronDown size={16} />
+          <span className="hero__scroll-cue-line" aria-hidden="true">
+            <span className="hero__scroll-cue-dot" />
+          </span>
         </a>
       </section>
 
@@ -489,6 +600,36 @@ export default function Home() {
 }
 
 /* ─── helpers ─── */
+
+/**
+ * Per-character lift reveal. Each letter sits in an overflow-hidden mask
+ * and rises into place on a slight stagger — cinematic and works inline.
+ */
+function CharReveal({ text, baseDelay = 0 }: { text: string; baseDelay?: number }) {
+  const reduced = useReducedMotion();
+  if (reduced) return <span>{text}</span>;
+  const chars = Array.from(text);
+  return (
+    <span className="char-reveal">
+      {chars.map((c, i) => (
+        <span className="char-reveal__char" key={i}>
+          <motion.span
+            className="char-reveal__inner"
+            initial={{ y: '110%', opacity: 0 }}
+            animate={{ y: '0%', opacity: 1 }}
+            transition={{
+              duration: 0.95,
+              delay: baseDelay + i * 0.045,
+              ease: [0.2, 0.7, 0.2, 1],
+            }}
+          >
+            {c === ' ' ? ' ' : c}
+          </motion.span>
+        </span>
+      ))}
+    </span>
+  );
+}
 
 function WordReveal({
   text,
