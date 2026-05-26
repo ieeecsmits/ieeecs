@@ -106,11 +106,11 @@ const HIGHLIGHTS: Highlight[] = [
   },
   {
     id: 'h5',
-    title: 'Chapter inauguration 2025',
+    title: 'Chapter inauguration 2026',
     subtitle: 'The tenure begins — new team, new programs, same standards.',
     image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=900&q=80',
     tag: 'Chapter',
-    meta: 'Aug 2025',
+    meta: 'Apr 2026',
     href: '/about',
   },
   {
