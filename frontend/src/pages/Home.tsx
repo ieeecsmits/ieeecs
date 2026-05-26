@@ -17,6 +17,7 @@ import Counter from '../components/Counter';
 import Marquee from '../components/Marquee';
 import { useMagnetic } from '../hooks/useMagnetic';
 import './Home.css';
+import { getCldImageUrl } from '@/components/Cloudinary';
 
 interface Event {
   id: string;
@@ -72,7 +73,7 @@ const HIGHLIGHTS: Highlight[] = [
     id: 'h1',
     title: 'Frontend Battle 2026',
     subtitle: 'Two rounds, dozens of teams, one pixel-perfect winner.',
-    image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=900&q=80',
+    image: getCldImageUrl("IMG_6649.HEIC_hnacuq.jpg"),
     tag: 'Hackathon',
     meta: 'Apr 2026 · 200+ participants',
     href: '/events',
@@ -81,7 +82,7 @@ const HIGHLIGHTS: Highlight[] = [
     id: 'h2',
     title: 'Career Blueprint with Deloitte',
     subtitle: 'A frank look at building a career in the age of AI, an inspiring session by Deloitte MD Dr. Sandeep Sharma.',
-    image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=900&q=80',
+    image: getCldImageUrl("IMG_6593.HEIC_ulc3fr.heic"),
     tag: 'Seminar',
     meta: 'Mar 2026 · SAC',
     href: '/events',
@@ -90,7 +91,7 @@ const HIGHLIGHTS: Highlight[] = [
     id: 'h3',
     title: 'Programming Mastery Roadmap',
     subtitle: 'Learn programming under the guidance of the legendary Dr. E. Balagurusamy himself.',
-    image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=900&q=80',
+    image: getCldImageUrl("IMG_5981.HEIC_cr1kim"),
     tag: 'Workshop',
     meta: 'Mar 2026 · Lab 301',
     href: '/events',
@@ -108,7 +109,7 @@ const HIGHLIGHTS: Highlight[] = [
     id: 'h5',
     title: 'Chapter inauguration 2026',
     subtitle: 'The tenure begins — new team, new programs, same standards.',
-    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=900&q=80',
+    image: getCldImageUrl("IMG_8559.HEIC_undaur.heic"),
     tag: 'Chapter',
     meta: 'Apr 2026',
     href: '/about',
