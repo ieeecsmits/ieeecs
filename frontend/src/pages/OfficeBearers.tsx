@@ -13,9 +13,9 @@ const LEADERSHIP = [
 
 const DIVISIONS = [
   { name:'Technical Development', color:'#F5C518', members:[
+    { name:'Aditya Singh',     dept:'AI-DS', year:'II', photo:'https://ieee-cs-mits-du.vercel.app/images-office-bearers/aditya-singh.jpg' },
     { name:'Amit Vishwakarma', dept:'IT-IoT',  year:'II' ,photo:'d:\\New folder\\amit_vishwakarma.png'},
     { name:'Amit Manmode',     dept:'CSE',  year:'II' },
-    { name:'Aditya Singh',     dept:'AI-DS', year:'II', photo:'https://ieee-cs-mits-du.vercel.app/images-office-bearers/aditya-singh.jpg' },
     { name:'Muhammad Raihaan Musharraf', dept:'AI', year:'III' },
     { name:'Astha Jain',       dept:'CSBS', year:'I' },
   ]},
