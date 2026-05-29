@@ -16,8 +16,73 @@ const TYPES    = ['All','workshop','seminar','hackathon','webinar','competition'
 const STATUSES = ['All','upcoming','ongoing','completed'];
 
 const SAMPLES: Event[] = [
-  { id:'1', title:'Career Blueprint: Insights from Deolite MD', description:'', short_description:'Industry experts on Career Guidance & how aAI impact or career.', event_type:'seminar', status:'completed', date:'2026-03-26', time:'4:00', venue:'SAC', is_online:false, current_participants:45, max_participants:200, tags:['Career Guidance'] },
-  { id:'2', title:'Frontend Battle 2026: Code for Change', description:'', short_description:' Frontend Battle 2K26 is a competitive web development event hosted by the IEEE Computer Society at MITS Gwalior, built around the core theme of "Design. Code. Deploy." The competition is structured into two main stages: a free-to-enter Round 1 (Portfolio Showdown) focused on building and showcasing a personal developer portfolio, followed by a Round 2 (Pixel Perfect Battle) where qualifiers must code a specific frontend interface layout on the spot. Open to both solo and duo participants, the event uniquely permits the use of AI tools and offers a lucrative 10K+ prize pool filled with cash awards, goodies, and refreshments, alongside hardcopy certificates for all Round 2 finalists. It is scheduled to take place on March 28th at 11:00 AM at the Student Activity Center (SAC) campus venue, and interested students can quickly register', event_type:'hackathon', status:'completed', date:'2026-03-28', time:'11:00', venue:'Seminar Hall(8-9-10)', is_online:false, total_participants: 500, tags:['Mini-Hackathon','Coding'] },
+  {
+  id: "roadmap-to-programming-skills",
+  title: "Roadmap to Programming Skills",
+  description: "IEEE Computer Society Student Chapter, MITS Gwalior, in collaboration with IEEE Madhya Pradesh Section, hosted an insightful technical talk by Dr. E. Balagurusamy, one of India's most renowned computer scientists, educators, and bestselling authors. The session provided students with a structured roadmap to mastering programming, covering the journey from fundamental concepts to advanced problem-solving skills. Drawing from decades of academic and industry experience, Dr. Balagurusamy shared practical guidance on developing strong programming foundations, choosing the right learning resources, building logical thinking, and preparing for successful careers in technology. The event inspired students to approach programming with clarity, consistency, and a growth mindset while gaining valuable insights from one of the most influential educators in computer science.",
+  short_description: "An inspiring technical talk by Dr. E. Balagurusamy on mastering programming fundamentals and building a successful technology career.",
+  event_type: "Technical Talk",
+  status: 'completed',
+  date: "2026-03-13",
+  time: "04:00 PM",
+  venue: "Conclave Hall",
+  is_online: false,
+  current_participants: 200,
+  max_participants: 250,
+  tags: [
+    "Programming",
+    "C++",
+    "Computer Science",
+    "Technical Talk",
+    "Career Guidance",
+    "Software Development",
+    "IEEE",
+    "IEEE Computer Society",
+    "Skill Development",
+    "Student Learning",
+    "Coding",
+    "Technology"
+  ]
+},
+{
+  id: "career-blueprint-deloitte-md",
+  title: "Career Blueprint: Insights from Deloitte MD",
+  description: "IEEE Computer Society Student Branch Chapter, MITS Gwalior, organized an exclusive leadership and career guidance session featuring Dr. Sandeep K. Sharma, Managing Director at Deloitte Consulting, Hyderabad. The session provided students with a rare opportunity to learn directly from an accomplished industry leader about building a successful career in the technology and consulting sectors. Dr. Sharma shared valuable insights on industry expectations, emerging technology trends, leadership development, professional growth, and the skills required to thrive in a highly competitive global environment. Students gained practical guidance on bridging the gap between academics and industry, developing a future-ready mindset, and making informed career decisions. The interactive discussion inspired participants to think beyond conventional career paths and prepare themselves for impactful roles in the ever-evolving technology landscape.",
+  short_description: "A transformative industry interaction with Deloitte Managing Director Dr. Sandeep K. Sharma on careers, leadership, and future technology opportunities.",
+  event_type: "Industry Talk",
+  status: "completed",
+  date: "2026-03-26",
+  time: "04:00 PM",
+  venue: "Student Activity Centre (SAC)",
+  is_online: false,
+  current_participants: 250,
+  max_participants: 300,
+  tags: [
+    "Deloitte",
+    "Industry Expert",
+    "Career Guidance",
+  ]
+},
+{
+  id: "frontend-battle-2026",
+  title: "Frontend Battle 2026",
+  description: "Frontend Battle 2026 emerged as one of the flagship technical competitions organized by the IEEE Computer Society Student Branch Chapter, MITS Gwalior. Designed to challenge participants across the complete frontend development lifecycle, the event brought together aspiring developers, designers, and innovators to showcase their creativity, technical expertise, and problem-solving abilities. The competition featured two exciting rounds: Portfolio Showdown, where participants demonstrated their personal projects and technical journeys, followed by Pixel Perfect Battle, a high-intensity frontend challenge focused on transforming design concepts into fully functional and responsive web interfaces. Embracing modern development practices, participants were encouraged to leverage AI-powered tools alongside their coding skills, reflecting the evolving landscape of software development. With enthusiastic participation, competitive spirit, industry-relevant challenges, and an impressive prize pool, the event provided a platform for students to gain practical experience, strengthen their portfolios, and connect with a thriving community of developers. The overwhelming response and exceptional quality of submissions established Frontend Battle 2026 as one of the most successful and impactful technical events conducted by the chapter.",
+  short_description: "A flagship frontend development competition featuring design, coding, deployment, and AI-powered innovation with an exceptional student response.",
+  event_type: "Technical Competition",
+  status: "completed",
+  date: "2026-03-28",
+  time: "11:00 AM",
+  venue: "Student Activity Centre (SAC)",
+  is_online: false,
+  current_participants: 350,
+  max_participants: 400,
+  tags: [
+    "Frontend Development",
+    "Coding Competition",
+    "Hackathon",
+  ]
+},
+  
 ];
 
 export default function Events() {

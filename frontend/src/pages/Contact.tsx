@@ -57,7 +57,7 @@ export default function Contact() {
 
               <div className="contact-details">
                 {[
-                  { icon: Mail,    label:'Email',     content:<a href="mailto:contact@ieee-cs.org">contact@ieee-cs.org</a> },
+                  { icon: Mail,    label:'Email',     content:<a href="mailto:contact@ieee-cs.org">ieeecsmits@gmail.com</a> },
                   { icon: Phone,   label:'Phone',     content:<span>+91 92445 24591</span> },
                   { icon: MapPin,  label:'Address',   content:<span>IEEE CS Chapter, CSE Dept,<br />MITS Gwalior — 474005</span> },
                   { icon: Clock,   label:'Response',  content:<span>Usually within 48-72 hours</span> },
@@ -75,7 +75,7 @@ export default function Contact() {
               <div className="contact-socials">
                 <p className="contact-socials__label">Follow us</p>
                 <div className="contact-socials__row">
-                  {[{icon:Linkedin,href:'#'},{icon:Github,href:'#'},{icon:Instagram,href:'#'}].map(({icon:Icon,href},i)=>(
+                  {[{icon:Linkedin,href:'https://www.linkedin.com/company/ieeecomputersociety-mitsdu/'},{icon:Github,href:'https://github.com/ieeecsmits'},{icon:Instagram,href:'https://www.instagram.com/ieeecomputersocietymits/'}].map(({icon:Icon,href},i)=>(
                     <a key={i} href={href} className="contact-social-btn"><Icon size={17}/></a>
                   ))}
                 </div>

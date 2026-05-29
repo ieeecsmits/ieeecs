@@ -7,7 +7,7 @@ import {
 import './Footer.css';
 
 const SOCIALS = [
-  { icon: Linkedin,  label: 'LinkedIn',  href: 'https://www.linkedin.com/' },
+  { icon: Linkedin,  label: 'LinkedIn',  href: 'https://www.linkedin.com/company/ieeecomputersociety-mitsdu/' },
   { icon: Instagram, label: 'Instagram', href: 'https://www.instagram.com/ieeecomputersocietymits/' },
   { icon: Twitter,   label: 'Twitter',   href: 'https://twitter.com/' },
 ];
@@ -157,9 +157,9 @@ export default function Footer() {
             <div className="footer__col">
               <h4 className="footer__col-head">Reach us</h4>
               <div className="footer__contact-list">
-                <a href="mailto:contact@ieee-cs.org" className="footer__contact-item">
+                <a href="mailto:ieeecsmits@gmail.com" className="footer__contact-item">
                   <Mail size={14} />
-                  <span>contact@ieee-cs.org</span>
+                  <span>ieeecsmits@gmail.com</span>
                 </a>
                 <a href="tel:+919244524591" className="footer__contact-item">
                   <Phone size={14} />
